@@ -6,9 +6,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class SwerveModuleBase extends SubsystemBase {
+public abstract class SwerveModuleBase{
     private final String id;
     private final Translation2d offset;
     private SwerveModuleState targetState;
@@ -53,7 +52,6 @@ public abstract class SwerveModuleBase extends SubsystemBase {
         return targetState.angle.getDegrees();
     }
 
-    @Override
     public void periodic() {
         telemetry.addData("SwerveModule" + getID() + "Target Angle", getTargetState());
         telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());

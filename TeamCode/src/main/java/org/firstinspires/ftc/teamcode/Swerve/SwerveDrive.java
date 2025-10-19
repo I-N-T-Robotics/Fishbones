@@ -21,9 +21,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class SwerveDrive extends SubsystemBase {
+public class SwerveDrive {
     private static final SwerveDrive instance;
 
     private final void debug() {
@@ -204,7 +203,6 @@ public class SwerveDrive extends SubsystemBase {
         return Units.RadiansPerSecond.of(this.getChassisSpeeds().omegaRadiansPerSecond);
     }
 
-    @Override
     public void periodic() {
         telemetry.update();
 

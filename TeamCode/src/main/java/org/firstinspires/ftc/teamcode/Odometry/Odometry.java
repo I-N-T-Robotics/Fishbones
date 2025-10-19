@@ -19,9 +19,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Odometry extends SubsystemBase {
+
+public class Odometry{
 
     private static final Odometry instance;
 
@@ -154,7 +154,6 @@ public class Odometry extends SubsystemBase {
         estimator.addVisionMeasurement(poseSum.div(areaSum), timestampSum/areaSum, VecBuilder.fill(0.7, 0.7, 10));
     }
 
-    @Override
     public void periodic() {
         ArrayList<VisionData> outputs = AprilTagVision.getOutputs();
 
