@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -20,11 +21,14 @@ public class TeleOp extends LinearOpMode {
 //        drive = hardwareMap.get(DcMotorEx.class, "FrontRightDrive");
 //        turn = hardwareMap.get(CRServo.class, "FrontRightTurn");
         SwerveDrive swerveDrive = null;
+        Odometry odometry = null;
         int i = 0;
 
         waitForStart();
 
         swerveDrive = SwerveDrive.createInstance(hardwareMap, telemetry);
+
+        odometry = Odometry.createInstance(hardwareMap, telemetry);
 
         while(opModeIsActive()) {
             //drive.setPower(1.0);
@@ -38,6 +42,11 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.update();
             SwerveDrive.getInstance().drive(velocity, rx);
             i++;
+
+            telemetry.addData("inputLeftx", gamepad1.left_stick_x);
+            telemetry.addData("inputLefty", gamepad1.left_stick_y);
+            telemetry.addData("inputRightx", gamepad1.right_stick_x);
+            telemetry.update();
 //            SwerveDrive.getInstance().setFieldRelativeSpeeds(speeds);
         }
     }

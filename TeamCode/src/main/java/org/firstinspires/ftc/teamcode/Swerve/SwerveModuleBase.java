@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -52,10 +50,10 @@ public abstract class SwerveModuleBase{
         return targetState.angle.getDegrees();
     }
 
-    public void periodic() {
-        telemetry.addData("SwerveModule" + getID() + "Target Angle", getTargetState());
-        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
-        telemetry.addData("SwerveModule" + getID() + "Target Velocity", targetState.speedMetersPerSecond);
-        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
-    }
+//    public void periodic() {
+//        telemetry.addData("SwerveModule" + getID() + "Target Angle", getTargetState());
+//        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
+//        telemetry.addData("SwerveModule" + getID() + "Target Velocity", targetState.speedMetersPerSecond);
+//        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
+//    }
 }

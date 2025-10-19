@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -81,9 +78,8 @@ public class SwerveModules extends SwerveModuleBase {
         return new SwerveModulePosition(realDriveEncoder.getPositionMeters(), getAngle());
     }
 
-    @Override
     public void periodic() {
-        super.periodic();
+//        super.periodic();
 
         double ffOutput = driveControllerFF.calculate(getTargetState().speedMetersPerSecond);
         double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
@@ -99,10 +95,10 @@ public class SwerveModules extends SwerveModuleBase {
             turnMotor.setPower(turnOutput);
         }
 
-        telemetry.addData("SwerveModules" + getID() + "DriveVoltage", finalOutput);
-        telemetry.addData("SwerveModules" + getID() + "TurnVoltage", turnOutput);
-        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
-        telemetry.addData("SwerveModule" + getID() + "AngleError", getTargetStateAngle() - getAngle().getDegrees());
-        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
+//        telemetry.addData("SwerveModules" + getID() + "DriveVoltage", finalOutput);
+//        telemetry.addData("SwerveModules" + getID() + "TurnVoltage", turnOutput);
+//        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
+//        telemetry.addData("SwerveModule" + getID() + "AngleError", getTargetStateAngle() - getAngle().getDegrees());
+//        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
     }
 }

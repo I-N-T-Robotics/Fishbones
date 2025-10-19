@@ -2,9 +2,6 @@
 
 package org.firstinspires.ftc.teamcode.Swerve;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -156,9 +153,9 @@ public class SwerveDrive {
     }
 
     public void setChassisSpeeds(ChassisSpeeds robotSpeeds) {
-        telemetry.addData("Chassis Target X Speed", robotSpeeds.vxMetersPerSecond);
-        telemetry.addData("Chassis Target Y Speed", robotSpeeds.vyMetersPerSecond);
-        telemetry.addData("Chassis Target Omega", robotSpeeds.omegaRadiansPerSecond);
+//        telemetry.addData("Chassis Target X Speed", robotSpeeds.vxMetersPerSecond);
+//        telemetry.addData("Chassis Target Y Speed", robotSpeeds.vyMetersPerSecond);
+//        telemetry.addData("Chassis Target Omega", robotSpeeds.omegaRadiansPerSecond);
 
         setModuleStates(kinematics.toSwerveModuleStates(robotSpeeds));
     }
@@ -227,7 +224,7 @@ public class SwerveDrive {
     }
 
     public void periodic() {
-        telemetry.update();
+//        telemetry.update();
 
         Odometry odometry = Odometry.getInstance();
         Pose2d pose = odometry.getPose();
@@ -242,17 +239,17 @@ public class SwerveDrive {
 
 //        dashboard.sendTelemetryPacket(statesPub);
 
-        telemetry.addData("Gyro Angle (deg)", getGyroAngle().getDegrees());
-        telemetry.addData("Gyro Pitch (deg)", getGyroPitch().getDegrees());
-        telemetry.addData("Gyro Roll (deg)", getGyroRoll().getDegrees());
-
-        telemetry.addData("Forward Acceleration (Gs)", getForwardAccelerationGs());
-        telemetry.addData("X Acceleration", gyro.getWorldLinearAccelX());
-        telemetry.addData("Y Acceleration", gyro.getWorldLinearAccelY());
-        telemetry.addData("Z Acceleration", gyro.getWorldLinearAccelZ());
-
-        telemetry.addData("Chassis X Speed", getChassisSpeeds().vxMetersPerSecond);
-        telemetry.addData("Chassis Y Speed", getChassisSpeeds().vyMetersPerSecond);
-        telemetry.addData("Chassis Rotation", getChassisSpeeds().omegaRadiansPerSecond);
+//        telemetry.addData("Gyro Angle (deg)", getGyroAngle().getDegrees());
+//        telemetry.addData("Gyro Pitch (deg)", getGyroPitch().getDegrees());
+//        telemetry.addData("Gyro Roll (deg)", getGyroRoll().getDegrees());
+//
+//        telemetry.addData("Forward Acceleration (Gs)", getForwardAccelerationGs());
+//        telemetry.addData("X Acceleration", gyro.getWorldLinearAccelX());
+//        telemetry.addData("Y Acceleration", gyro.getWorldLinearAccelY());
+//        telemetry.addData("Z Acceleration", gyro.getWorldLinearAccelZ());
+//
+//        telemetry.addData("Chassis X Speed", getChassisSpeeds().vxMetersPerSecond);
+//        telemetry.addData("Chassis Y Speed", getChassisSpeeds().vyMetersPerSecond);
+//        telemetry.addData("Chassis Rotation", getChassisSpeeds().omegaRadiansPerSecond);
     }
 }

@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.Odometry;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants.Field;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
@@ -21,20 +22,31 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.numbers.N3;
 
 
-public class Odometry{
+public class Odometry {
 
-    private static final Odometry instance;
+    private static Odometry instance;
+    private Telemetry telemetry;
 
 //    public final void debug() {
 //        telemetry.addData("FirstOdometryCall", "FirstOdometryCall");
 //        telemetry.update();
 //    }
 
-    static {
-        instance = new Odometry();
+//    static {
+//        instance = new Odometry();
+//    }
+
+    public static Odometry createInstance(HardwareMap hardwareMap, Telemetry telemetry) {
+        if (instance == null) {
+            instance = new Odometry(hardwareMap, telemetry);
+        }
+        return instance;
     }
 
     public static Odometry getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("Odometry not initialized");
+        }
         return instance;
     }
 
@@ -54,7 +66,9 @@ public class Odometry{
     private Translation2d robotVelocity;
     private Translation2d lastPose;
 
-    protected Odometry() {
+    private Odometry(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
         SwerveDrive swerve = SwerveDrive.getInstance();
         odometry = new SwerveDriveOdometry(
                 swerve.getKinematics(),
