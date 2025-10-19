@@ -40,13 +40,16 @@ public class TeleOp extends LinearOpMode {
             Translation2d velocity = new Translation2d(x, y);
 //            telemetry.addData("work1", i);
 //            telemetry.update();
+
             SwerveDrive.getInstance().drive(velocity, rx);
-            i++;
+            swerveDrive.updateModules();
 
             telemetry.addData("inputLeftx", gamepad1.left_stick_x);
             telemetry.addData("inputLefty", gamepad1.left_stick_y);
             telemetry.addData("inputRightx", gamepad1.right_stick_x);
             telemetry.update();
+
+            i++;
 //            SwerveDrive.getInstance().setFieldRelativeSpeeds(speeds);
         }
     }

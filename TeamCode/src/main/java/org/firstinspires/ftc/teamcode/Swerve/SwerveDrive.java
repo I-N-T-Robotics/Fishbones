@@ -139,7 +139,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 0 /*max module speed*/);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 1 /*max module speed*/);
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
@@ -158,6 +158,12 @@ public class SwerveDrive {
 //        telemetry.addData("Chassis Target Omega", robotSpeeds.omegaRadiansPerSecond);
 
         setModuleStates(kinematics.toSwerveModuleStates(robotSpeeds));
+    }
+
+    public void updateModules() {
+        for (SwerveModules module : modules) {
+            module.periodic();
+        }
     }
 
     public void setXMode() {

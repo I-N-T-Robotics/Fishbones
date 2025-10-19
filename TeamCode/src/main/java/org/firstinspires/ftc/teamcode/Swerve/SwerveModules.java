@@ -55,10 +55,11 @@ public class SwerveModules extends SwerveModuleBase {
 
         realDriveEncoder = new EncoderConversion(driveMotor, 0, 0, 0);
 
-        driveControllerPID = new PIDController(0, 0, 0);
-        driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
+        driveControllerPID = new PIDController(1, 0, 0);
+        driveControllerFF = new SimpleMotorFeedforward(0.3, 0.2, 0);
 
-        turnControllerPID = new PIDController(0, 0, 0);
+        turnControllerPID = new PIDController(0.5, 0, 0);
+        turnControllerPID.enableContinuousInput(-180, 180);
 
         //configure?
     }
