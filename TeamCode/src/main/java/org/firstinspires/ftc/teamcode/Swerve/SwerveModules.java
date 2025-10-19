@@ -53,7 +53,7 @@ public class SwerveModules extends SwerveModuleBase {
         turnMotor = hardwareMap.get(CRServo.class, turnName);
         turnEncoder = hardwareMap.get(AnalogInput.class, turnEncoderName);
 
-        realDriveEncoder = new EncoderConversion(driveMotor, 0, 0, 0);
+        realDriveEncoder = new EncoderConversion(driveMotor, 4, 5, 8192);
 
         driveControllerPID = new PIDController(1, 0, 0);
         driveControllerFF = new SimpleMotorFeedforward(0.3, 0.2, 0);
@@ -66,7 +66,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     @Override
     public double getVelocity() {
-        return realDriveEncoder.getPositionMeters();
+        return realDriveEncoder.getVelocityMetersPerSecond();
     }
 
     @Override

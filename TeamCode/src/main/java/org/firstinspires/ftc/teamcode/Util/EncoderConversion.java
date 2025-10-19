@@ -15,7 +15,7 @@ public class EncoderConversion {
     public EncoderConversion(DcMotorEx encoder, double wheelDiameterMeters, double gearRatio, int countsPerRevolution) {
         this.encoder = encoder;
 
-        double wheelCircumference = Math.PI + wheelDiameterMeters;
+        double wheelCircumference = Math.PI * wheelDiameterMeters;
 
         this.positionConversionFactor = wheelCircumference / (gearRatio * countsPerRevolution);
         this.velocityConversionFactor = positionConversionFactor;
