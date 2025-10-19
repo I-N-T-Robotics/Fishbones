@@ -6,7 +6,9 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 import org.firstinspires.ftc.teamcode.Util.navx.AHRS;
@@ -23,26 +25,33 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class SwerveDrive {
-    private static final SwerveDrive instance;
+    private static SwerveDrive instance;
 
-    private final void debug() {
-        telemetry.addData("FirstSwerveCall", "FirstSwerveCall");
-        telemetry.update();
-    }
+//    private final void debug() {
+//        telemetry.addData("FirstSwerveCall", "FirstSwerveCall");
+//        telemetry.update();
+//    }
 
-    static {
-        instance = new SwerveDrive(
-                new SwerveModules("Front Right", Settings.Swerve.FrontRight.MODULE_OFFSET, Rotation2d.fromDegrees(-153.632812 + 180), Settings.Swerve.FrontRight.Turn, Settings.Swerve.FrontRight.DRIVE, Settings.Swerve.FrontRight.TURN_ENCODER, Settings.Swerve.FrontRight.DRIVE_ENCODER)
-                //new SwerveModules("Front Left", Settings.Swerve.FrontLeft.MODULE_OFFSET, Rotation2d.fromDegrees(147.919922 + 180), Settings.Swerve.FrontLeft.Turn, Settings.Swerve.FrontLeft.DRIVE, Settings.Swerve.FrontLeft.TURN_ENCODER, Settings.Swerve.FrontLeft.DRIVE_ENCODER),
-                //new SwerveModules("Back Left", Settings.Swerve.BackLeft.MODULE_OFFSET, Rotation2d.fromDegrees(73.125 + 180), Settings.Swerve.BackLeft.Turn, Settings.Swerve.BackLeft.DRIVE, Settings.Swerve.BackLeft.TURN_ENCODER, Settings.Swerve.BackLeft.DRIVE_ENCODER),
-                //new SwerveModules("Back Right", Settings.Swerve.BackRight.MODULE_OFFSET, Rotation2d.fromDegrees(-2.02184 + 180), Settings.Swerve.BackRight.Turn, Settings.Swerve.BackRight.DRIVE, Settings.Swerve.BackRight.TURN_ENCODER, Settings.Swerve.BackRight.DRIVE_ENCODER)
-        );
+//    static {
+//        instance = new SwerveDrive(
+//                new SwerveModules("Front Right", Settings.Swerve.FrontRight.MODULE_OFFSET, Rotation2d.fromDegrees(-153.632812 + 180), Settings.Swerve.FrontRight.Turn, Settings.Swerve.FrontRight.DRIVE, Settings.Swerve.FrontRight.TURN_ENCODER, Settings.Swerve.FrontRight.DRIVE_ENCODER)
+//                //new SwerveModules("Front Left", Settings.Swerve.FrontLeft.MODULE_OFFSET, Rotation2d.fromDegrees(147.919922 + 180), Settings.Swerve.FrontLeft.Turn, Settings.Swerve.FrontLeft.DRIVE, Settings.Swerve.FrontLeft.TURN_ENCODER, Settings.Swerve.FrontLeft.DRIVE_ENCODER),
+//                //new SwerveModules("Back Left", Settings.Swerve.BackLeft.MODULE_OFFSET, Rotation2d.fromDegrees(73.125 + 180), Settings.Swerve.BackLeft.Turn, Settings.Swerve.BackLeft.DRIVE, Settings.Swerve.BackLeft.TURN_ENCODER, Settings.Swerve.BackLeft.DRIVE_ENCODER),
+//                //new SwerveModules("Back Right", Settings.Swerve.BackRight.MODULE_OFFSET, Rotation2d.fromDegrees(-2.02184 + 180), Settings.Swerve.BackRight.Turn, Settings.Swerve.BackRight.DRIVE, Settings.Swerve.BackRight.TURN_ENCODER, Settings.Swerve.BackRight.DRIVE_ENCODER)
+//        );
+//    }
+
+    public static SwerveDrive createInstance(HardwareMap hardwareMap, Telemetry telemetry) {
+        if (instance == null) {
+            instance = new SwerveDrive(hardwareMap, telemetry);
+        }
+        return instance;
     }
 
     public static SwerveDrive getInstance() {
 
-        telemetry.addData("SwerveInstanceCall", "SwerveInstanceCall");
-        telemetry.update();
+//        telemetry.addData("SwerveInstanceCall", "SwerveInstanceCall");
+//        telemetry.update();
 
         return instance;
     }
@@ -56,12 +65,26 @@ public class SwerveDrive {
 //    private final TelemetryPacket statesPub;
     //private final FtcDashboard dashboard;
 
-    protected SwerveDrive(SwerveModules... modules) {
+    protected SwerveDrive(HardwareMap hardwareMap, Telemetry telemetry) {
 
-        telemetry.addData("CreateModules", "CreatModules");
-        telemetry.update();
+//        telemetry.addData("CreateModules", "CreatModules");
+//        telemetry.update();
 
-        this.modules = modules;
+        this.modules = new SwerveModules[] {
+                new SwerveModules(hardwareMap, telemetry, "Front Right",
+                        Settings.Swerve.FrontRight.MODULE_OFFSET,
+                        Rotation2d.fromDegrees(-153.632 + 180),
+                        Settings.Swerve.FrontRight.Turn,
+                        Settings.Swerve.FrontRight.DRIVE,
+                        Settings.Swerve.FrontRight.TURN_ENCODER),
+                new SwerveModules(hardwareMap, telemetry, "Front Left",
+                    Settings.Swerve.FrontLeft.MODULE_OFFSET,
+                    Rotation2d.fromDegrees(-173.408203),
+                    Settings.Swerve.FrontLeft.Turn,
+                    Settings.Swerve.FrontLeft.DRIVE,
+                    Settings.Swerve.FrontLeft.TURN_ENCODER)
+        };
+
         kinematics = new SwerveDriveKinematics(getModuleOffsets());
         gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
                 AHRS.DeviceDataType.kProcessedData); //check all info
@@ -153,15 +176,15 @@ public class SwerveDrive {
 
     //drive functions
     public void drive(Translation2d velocity, double rotation) {
-        telemetry.addData("runningDrive", "runningDrive");
-        telemetry.update();
+//        telemetry.addData("runningDrive", "runningDrive");
+//        telemetry.update();
 
         ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                 velocity.getY(), -velocity.getX(),
                 -rotation,
                 Odometry.getInstance().getPose().getRotation());
-        telemetry.addData("odometryCall", "odometryCall");
-        telemetry.update();
+//        telemetry.addData("odometryCall", "odometryCall");
+//        telemetry.update();
 
         Pose2d robotVel = new Pose2d(
                 Settings.DT * speeds.vxMetersPerSecond,
@@ -174,8 +197,8 @@ public class SwerveDrive {
                 twistVel.dy / Settings.DT,
                 twistVel.dtheta / Settings.DT));
 
-        telemetry.addData("finishDrive", "finishDrive");
-        telemetry.update();
+//        telemetry.addData("finishDrive", "finishDrive");
+//        telemetry.update();
     }
 
     public void stop() {

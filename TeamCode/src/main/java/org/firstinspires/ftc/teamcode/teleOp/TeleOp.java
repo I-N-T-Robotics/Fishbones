@@ -12,16 +12,20 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-    private DcMotorEx drive;
-    private CRServo turn;
+//    private DcMotorEx drive;
+//    private CRServo turn;
 
     @Override
     public void runOpMode() throws InterruptedException {
 //        drive = hardwareMap.get(DcMotorEx.class, "FrontRightDrive");
 //        turn = hardwareMap.get(CRServo.class, "FrontRightTurn");
+        SwerveDrive swerveDrive = null;
         int i = 0;
 
         waitForStart();
+
+        swerveDrive = SwerveDrive.createInstance(hardwareMap, telemetry);
+
         while(opModeIsActive()) {
             //drive.setPower(1.0);
 
@@ -30,8 +34,8 @@ public class TeleOp extends LinearOpMode {
             double rx = gamepad1.right_stick_x;
             ChassisSpeeds speeds = new ChassisSpeeds(x, y, rx);
             Translation2d velocity = new Translation2d(x, y);
-            telemetry.addData("work1", i);
-            telemetry.update();
+//            telemetry.addData("work1", i);
+//            telemetry.update();
             SwerveDrive.getInstance().drive(velocity, rx);
             i++;
 //            SwerveDrive.getInstance().setFieldRelativeSpeeds(speeds);

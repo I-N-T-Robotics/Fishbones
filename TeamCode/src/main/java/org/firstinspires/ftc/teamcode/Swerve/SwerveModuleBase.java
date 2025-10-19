@@ -12,10 +12,10 @@ public abstract class SwerveModuleBase{
     private final Translation2d offset;
     private SwerveModuleState targetState;
 
-    private final void debug() {
-        telemetry.addData("FirstSwerveBaseCall", "FirstSwerveBaseCall");
-        telemetry.update();
-    }
+//    private final void debug() {
+//        telemetry.addData("FirstSwerveBaseCall", "FirstSwerveBaseCall");
+//        telemetry.update();
+//    }
 
     public SwerveModuleBase(String id, Translation2d offset) {
         this.id = id;

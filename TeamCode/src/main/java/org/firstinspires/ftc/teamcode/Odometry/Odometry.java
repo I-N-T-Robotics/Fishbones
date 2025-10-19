@@ -25,10 +25,10 @@ public class Odometry{
 
     private static final Odometry instance;
 
-    public final void debug() {
-        telemetry.addData("FirstOdometryCall", "FirstOdometryCall");
-        telemetry.update();
-    }
+//    public final void debug() {
+//        telemetry.addData("FirstOdometryCall", "FirstOdometryCall");
+//        telemetry.update();
+//    }
 
     static {
         instance = new Odometry();
