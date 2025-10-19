@@ -55,10 +55,10 @@ public class SwerveModules extends SwerveModuleBase {
 
         realDriveEncoder = new EncoderConversion(driveMotor, 4, 5, 8192);
 
-        driveControllerPID = new PIDController(1, 0, 0);
-        driveControllerFF = new SimpleMotorFeedforward(0.3, 0.2, 0);
+        driveControllerPID = new PIDController(0.55, 0, 0);
+        driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
 
-        turnControllerPID = new PIDController(0.5, 0, 0);
+        turnControllerPID = new PIDController(0, 0, 0);
         turnControllerPID.enableContinuousInput(-180, 180);
 
         //configure?
@@ -71,7 +71,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     @Override
     public Rotation2d getAngle() {
-        return Rotation2d.fromRotations(new AnalogEncoder(turnEncoder, 5.0, 10).getDegrees() - angleOffset.getDegrees());
+        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 8192).getDegrees() - angleOffset.getDegrees());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SwerveModules extends SwerveModuleBase {
         double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
         double finalOutput = ffOutput + PIDOutput;
 
-        double turnOutput = turnControllerPID.calculate(getTargetStateAngle(), getAngle().getDegrees());
+        double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
 
         if(Math.abs(driveControllerPID.getSetpoint()) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
             driveMotor.setPower(0);

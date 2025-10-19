@@ -139,7 +139,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 1 /*max module speed*/);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 10 /*max module speed*/);
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
