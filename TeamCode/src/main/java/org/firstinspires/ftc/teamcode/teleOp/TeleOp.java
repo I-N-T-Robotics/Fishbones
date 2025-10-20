@@ -1,55 +1,73 @@
 package org.firstinspires.ftc.teamcode.teleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
+import org.firstinspires.ftc.teamcode.Swerve.SwerveModuleBase;
+import org.firstinspires.ftc.teamcode.Util.Filters;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-//    private DcMotorEx drive;
-//    private CRServo turn;
+    private ElapsedTime timer = new ElapsedTime();
+    private final double UPDATE_PERIOD_MS = 20;
+
+    private double prevX = 0.0;
+    private double prevY = 0.0;
+    private double prevRX = 0.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-//        drive = hardwareMap.get(DcMotorEx.class, "FrontRightDrive");
-//        turn = hardwareMap.get(CRServo.class, "FrontRightTurn");
         SwerveDrive swerveDrive = null;
         Odometry odometry = null;
-        int i = 0;
+
+        timer.reset();
+        double lastUpdateTime = 0;
 
         waitForStart();
 
         swerveDrive = SwerveDrive.createInstance(hardwareMap, telemetry);
-
         odometry = Odometry.createInstance(hardwareMap, telemetry);
 
         while(opModeIsActive()) {
-            //drive.setPower(1.0);
+            double currentTime = timer.milliseconds();
 
-            double x = gamepad1.left_stick_x;
-            double y = -gamepad1.left_stick_y;
-            double rx = gamepad1.right_stick_x;
-            ChassisSpeeds speeds = new ChassisSpeeds(x, y, rx);
-            Translation2d velocity = new Translation2d(x, y);
-//            telemetry.addData("work1", i);
-//            telemetry.update();
+            if(currentTime - lastUpdateTime >= UPDATE_PERIOD_MS) {
+                double rawX = Filters.applyDeadband(gamepad1.left_stick_x, 0.05);
+                double x = Filters.smoothInput(rawX, prevX, 0.2);
+                prevX = x;
 
-            SwerveDrive.getInstance().drive(velocity, rx);
-            swerveDrive.updateModules();
+                double rawY = Filters.applyDeadband(-gamepad1.left_stick_y, 0.05);
+                double y = Filters.smoothInput(rawY, prevY, 0.2);
+                prevY = y;
 
-            telemetry.addData("inputLeftx", gamepad1.left_stick_x);
-            telemetry.addData("inputLefty", gamepad1.left_stick_y);
-            telemetry.addData("inputRightx", gamepad1.right_stick_x);
+                double rawRX = Filters.applyDeadband(gamepad1.right_stick_x, 0.05);
+                double rx = Filters.smoothInput(rawRX, prevRX, 0.2);
+                prevRX = rx;
+
+//                ChassisSpeeds speeds = new ChassisSpeeds(x, y, rx);
+                Translation2d velocity = new Translation2d(x, y);
+
+                swerveDrive.drive(velocity, rx);
+                swerveDrive.updateModules();
+
+                lastUpdateTime = currentTime;
+            }
+
+            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
+            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
+            telemetry.addData("inputRightX", gamepad1.right_stick_x);
+
+            telemetry.addData("filteredX", prevX);
+            telemetry.addData("filteredY", prevY);
+            telemetry.addData("filteredRX", prevRX);
+
             telemetry.update();
 
-            i++;
 //            SwerveDrive.getInstance().setFieldRelativeSpeeds(speeds);
         }
     }

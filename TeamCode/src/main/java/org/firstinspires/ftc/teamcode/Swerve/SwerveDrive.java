@@ -64,22 +64,34 @@ public class SwerveDrive {
 
     protected SwerveDrive(HardwareMap hardwareMap, Telemetry telemetry) {
 
-//        telemetry.addData("CreateModules", "CreatModules");
+//        telemetry.addData("CreateModules", "CreateModules");
 //        telemetry.update();
 
         this.modules = new SwerveModules[] {
                 new SwerveModules(hardwareMap, telemetry, "Front Right",
                         Settings.Swerve.FrontRight.MODULE_OFFSET,
-                        Rotation2d.fromDegrees(-153.632 + 180),
+                        Settings.Swerve.FrontRight.ABSOLUTE_OFFSET,
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
                         Settings.Swerve.FrontRight.TURN_ENCODER),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
-                    Settings.Swerve.FrontLeft.MODULE_OFFSET,
-                    Rotation2d.fromDegrees(-173.408203),
-                    Settings.Swerve.FrontLeft.Turn,
-                    Settings.Swerve.FrontLeft.DRIVE,
-                    Settings.Swerve.FrontLeft.TURN_ENCODER)
+                        Settings.Swerve.FrontLeft.MODULE_OFFSET,
+                        Settings.Swerve.FrontLeft.ABSOLUTE_OFFSET,
+                        Settings.Swerve.FrontLeft.Turn,
+                        Settings.Swerve.FrontLeft.DRIVE,
+                        Settings.Swerve.FrontLeft.TURN_ENCODER),
+                new SwerveModules(hardwareMap, telemetry, "Back Right",
+                        Settings.Swerve.BackRight.MODULE_OFFSET,
+                        Settings.Swerve.BackRight.ABSOLUTE_OFFSET,
+                        Settings.Swerve.BackRight.Turn,
+                        Settings.Swerve.BackRight.DRIVE,
+                        Settings.Swerve.BackRight.TURN_ENCODER),
+                new SwerveModules(hardwareMap, telemetry, "Back Left",
+                        Settings.Swerve.BackLeft.MODULE_OFFSET,
+                        Settings.Swerve.BackLeft.ABSOLUTE_OFFSET,
+                        Settings.Swerve.BackLeft.Turn,
+                        Settings.Swerve.BackLeft.DRIVE,
+                        Settings.Swerve.BackLeft.TURN_ENCODER)
         };
 
         kinematics = new SwerveDriveKinematics(getModuleOffsets());

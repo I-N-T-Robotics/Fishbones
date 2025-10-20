@@ -15,8 +15,8 @@ public interface Settings {
 
     double DT = 1.0 / 50.0; //delta time, update time, 20ms
 
-    double WIDTH = Units.inchesToMeters(32);
-    double LENGTH = Units.inchesToMeters(36);
+    double WIDTH = Units.inchesToMeters(16);
+    double LENGTH = Units.inchesToMeters(16);
 
     public interface Swerve {
         public interface FrontRight {

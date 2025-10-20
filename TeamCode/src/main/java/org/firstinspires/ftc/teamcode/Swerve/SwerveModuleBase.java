@@ -39,7 +39,7 @@ public abstract class SwerveModuleBase{
 
     public final void setTargetState(SwerveModuleState state) {
         targetState = new SwerveModuleState(state.speedMetersPerSecond, state.angle);
-        //targetState.optimize(getAngle());
+        targetState.optimize(getAngle());
     }
 
     public final SwerveModuleState getTargetState() {
