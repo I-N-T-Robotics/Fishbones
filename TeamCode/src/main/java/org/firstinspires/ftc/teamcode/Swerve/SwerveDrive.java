@@ -145,6 +145,15 @@ public class SwerveDrive {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
 
+    //logs
+    public double getTargetAngle() {
+        double tAngle = 0;
+        for (int i = 0; i < modules.length; i++) {
+            tAngle = modules[i].getTargetStateAngle();
+        }
+        return tAngle;
+    }
+
     //setters
     public void setModuleStates(SwerveModuleState[] states) {
         if (states.length != modules.length) {

@@ -53,13 +53,13 @@ public class SwerveModules extends SwerveModuleBase {
         turnMotor = hardwareMap.get(CRServo.class, turnName);
         turnEncoder = hardwareMap.get(AnalogInput.class, turnEncoderName);
 
-        realDriveEncoder = new EncoderConversion(driveMotor, 4, 5, 8192);
+        realDriveEncoder = new EncoderConversion(driveMotor, 2.5, 4, 8192);
 
-        driveControllerPID = new PIDController(0.7, 0, 0);
+        driveControllerPID = new PIDController(/*0.7*/0, 0, 0);
         driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
 
-        turnControllerPID = new PIDController(0, 0, 0);
-        turnControllerPID.enableContinuousInput(-180, 180);
+        turnControllerPID = new PIDController(0.003, 0, 0);
+        turnControllerPID.enableContinuousInput(0, 360); //choose between this and .optimize
 
         //configure?
     }
@@ -92,7 +92,7 @@ public class SwerveModules extends SwerveModuleBase {
             driveMotor.setPower(0);
             turnMotor.setPower(0);
         } else {
-            driveMotor.setPower(finalOutput);
+            driveMotor.setPower(-finalOutput);
             turnMotor.setPower(turnOutput);
         }
 
