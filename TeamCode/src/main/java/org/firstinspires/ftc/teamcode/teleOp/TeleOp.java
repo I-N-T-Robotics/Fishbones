@@ -71,8 +71,12 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("filteredY", prevY);
             telemetry.addData("filteredRX", prevRX);
 
-            telemetry.addData("SwerveModule" + "Target Angle", SwerveDrive.getInstance().getModuleOffsets());
-            telemetry.addData("SwerveModule" + "Angle", SwerveDrive.getInstance().getTargetAngle());
+            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getAngle().getDegrees());
+            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
+            telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
+            telemetry.addData("BR Turn",SwerveDrive.getInstance().getSwerveModules()[2].getAngle().getDegrees());
+            telemetry.addData("BL Turn", SwerveDrive.getInstance().getSwerveModules()[3].getAngle().getDegrees());
+
 
             telemetry.update();
 

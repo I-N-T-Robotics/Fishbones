@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 import org.firstinspires.ftc.teamcode.Util.navx.AHRS;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -73,25 +74,29 @@ public class SwerveDrive {
                         Settings.Swerve.FrontRight.ABSOLUTE_OFFSET,
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
-                        Settings.Swerve.FrontRight.TURN_ENCODER),
+                        Settings.Swerve.FrontRight.TURN_ENCODER,
+                        new PIDController(0.015, 0, 0)),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
                         Settings.Swerve.FrontLeft.MODULE_OFFSET,
                         Settings.Swerve.FrontLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.FrontLeft.Turn,
                         Settings.Swerve.FrontLeft.DRIVE,
-                        Settings.Swerve.FrontLeft.TURN_ENCODER),
+                        Settings.Swerve.FrontLeft.TURN_ENCODER,
+                        new PIDController(0.024, 0, 0)),
                 new SwerveModules(hardwareMap, telemetry, "Back Right",
                         Settings.Swerve.BackRight.MODULE_OFFSET,
                         Settings.Swerve.BackRight.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackRight.Turn,
                         Settings.Swerve.BackRight.DRIVE,
-                        Settings.Swerve.BackRight.TURN_ENCODER),
+                        Settings.Swerve.BackRight.TURN_ENCODER,
+                        new PIDController(0.025, 0, 0)),
                 new SwerveModules(hardwareMap, telemetry, "Back Left",
                         Settings.Swerve.BackLeft.MODULE_OFFSET,
                         Settings.Swerve.BackLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackLeft.Turn,
                         Settings.Swerve.BackLeft.DRIVE,
-                        Settings.Swerve.BackLeft.TURN_ENCODER)
+                        Settings.Swerve.BackLeft.TURN_ENCODER,
+                        new PIDController(0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
         };
 
         kinematics = new SwerveDriveKinematics(getModuleOffsets());
@@ -123,6 +128,9 @@ public class SwerveDrive {
             states[i] = modules[i].getState();
         }
         return states;
+    }
+    public SwerveModules[] getSwerveModules() {
+        return this.modules;
     }
 
     public SwerveModulePosition[] getModulePositions() {

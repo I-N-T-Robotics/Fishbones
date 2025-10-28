@@ -43,7 +43,7 @@ public class SwerveModules extends SwerveModuleBase {
 //        };
 //    }
 
-    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName) {
+    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID) {
         super(id, translationOffset);
 
         this.angleOffset = angleOffset;
@@ -58,8 +58,8 @@ public class SwerveModules extends SwerveModuleBase {
         driveControllerPID = new PIDController(/*0.7*/0, 0, 0);
         driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
 
-        turnControllerPID = new PIDController(0.003, 0, 0);
-        turnControllerPID.enableContinuousInput(0, 360); //choose between this and .optimize
+        turnControllerPID = turnPID;
+        turnControllerPID.enableContinuousInput(0, 180); //choose between this and .optimize
 
         //configure?
     }
@@ -71,7 +71,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     @Override
     public Rotation2d getAngle() {
-        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 8192).getDegrees() - angleOffset.getDegrees());
+        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 8192, 2).getDegrees() - angleOffset.getDegrees());
     }
 
     @Override

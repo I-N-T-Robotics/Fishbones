@@ -25,7 +25,7 @@ public interface Settings {
             String DRIVE_ENCODER = "FrontRightDriveEncoder";
             String TURN_ENCODER = "FrontRightTurnEncoder";
             String ID = "Front Right";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);
+            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(130.4);
             Translation2d MODULE_OFFSET = new Translation2d(WIDTH * +0.5, LENGTH * -0.5);
         }
         public interface FrontLeft {
@@ -34,7 +34,7 @@ public interface Settings {
             String DRIVE_ENCODER = "FrontLeftDriveEncoder";
             String TURN_ENCODER = "FrontLeftTurnEncoder";
             String ID = "Front Left";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);
+            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(140.3);
             Translation2d MODULE_OFFSET = new Translation2d(WIDTH * +0.5, LENGTH * +0.5);
         }
         public interface BackRight {
@@ -43,7 +43,7 @@ public interface Settings {
             String DRIVE_ENCODER = "BackRightDriveEncoder";
             String TURN_ENCODER = "BackRightTurnEncoder";
             String ID = "Back Right";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);
+            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(164);
             Translation2d MODULE_OFFSET = new Translation2d(WIDTH * -0.5, LENGTH * -0.5);
         }
         public interface BackLeft {
@@ -52,7 +52,7 @@ public interface Settings {
             String DRIVE_ENCODER = "BackLeftDriveEncoder";
             String TURN_ENCODER = "BackLeftTurnEncoder";
             String ID = "Back Left";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);
+            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(172.2);
             Translation2d MODULE_OFFSET = new Translation2d(WIDTH * -0.5, LENGTH * +0.5);
         }
         double MODULE_VELOCITY_DEADBAND = 0.05;
