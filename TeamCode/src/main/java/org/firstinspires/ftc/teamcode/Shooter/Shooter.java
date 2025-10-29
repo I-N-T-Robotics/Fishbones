@@ -4,8 +4,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.Constants.Field;
-import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 import org.firstinspires.ftc.teamcode.Util.LinearRegression;
 
 import edu.wpi.first.math.geometry.Translation2d;
