@@ -1,33 +1,34 @@
 package org.firstinspires.ftc.teamcode.teleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.distances;
+import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.hoodAngles;
+import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.shooterSpeeds;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.teamcode.Constants.Field;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
+import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
-import org.firstinspires.ftc.teamcode.Swerve.SwerveModuleBase;
-import org.firstinspires.ftc.teamcode.Swerve.SwerveModules;
-import org.firstinspires.ftc.teamcode.Util.Filters;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-    private ElapsedTime timer = new ElapsedTime();
-    private final double UPDATE_PERIOD_MS = 20;
 
-    private double prevX = 0.0;
-    private double prevY = 0.0;
-    private double prevRX = 0.0;
+    private Shooter shooter;
+    private ShooterHood hood;
 
     @Override
     public void runOpMode() throws InterruptedException {
         SwerveDrive swerveDrive = null;
         Odometry odometry = null;
+        shooter = new Shooter(hardwareMap);
+        hood = new ShooterHood(hardwareMap);
 
-        timer.reset();
-        double lastUpdateTime = 0;
+        shooter.rpmRegression(distances, shooterSpeeds);
+        hood.hoodRegression(distances, hoodAngles);
 
         waitForStart();
 
@@ -35,41 +36,29 @@ public class TeleOp extends LinearOpMode {
         odometry = Odometry.createInstance(hardwareMap, telemetry);
 
         while(opModeIsActive()) {
-            double currentTime = timer.milliseconds();
 
-            if(currentTime - lastUpdateTime >= UPDATE_PERIOD_MS) {
-//                double rawX = Filters.applyDeadband(gamepad1.left_stick_x, 0.05);
-//                double x = Filters.smoothInput(rawX, prevX, 0.2);
-//                prevX = x;
-//
-//                double rawY = Filters.applyDeadband(-gamepad1.left_stick_y, 0.05);
-//                double y = Filters.smoothInput(rawY, prevY, 0.2);
-//                prevY = y;
-//
-//                double rawRX = Filters.applyDeadband(gamepad1.right_stick_x, 0.05);
-//                double rx = Filters.smoothInput(rawRX, prevRX, 0.2);
-//                prevRX = rx;
+            //fix to get correct tags
+            double shooterDistance = Odometry.getInstance().getDistanceToTag(Field.getTag(1)) * (537.6/60 /*encoder tick per rotations*/);
+            double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1)) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
+            shooterHoodDistance = Math.max(0.0, Math.min(1.0, shooterHoodDistance));
 
-                double x = gamepad1.left_stick_x;
-                double y = -gamepad1.left_stick_y;
-                double rx = gamepad1.right_stick_x;
+            double x = gamepad1.left_stick_x;
+            double y = -gamepad1.left_stick_y;
+            double rx = gamepad1.right_stick_x;
 
-//                ChassisSpeeds speeds = new ChassisSpeeds(x, y, rx);
-                Translation2d velocity = new Translation2d(x, y);
+            //drive
+            Translation2d velocity = new Translation2d(x, y);
 
-                swerveDrive.drive(velocity, rx);
-                swerveDrive.updateModules();
+            swerveDrive.drive(velocity, rx);
+            swerveDrive.updateModules();
 
-                lastUpdateTime = currentTime;
-            }
+            //shooter + hood
+            shooter.setShooterSpeed(shooterDistance);
+            hood.setHoodPosition(shooterHoodDistance);
 
             telemetry.addData("inputLeftX", gamepad1.left_stick_x);
             telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
             telemetry.addData("inputRightX", gamepad1.right_stick_x);
-
-            telemetry.addData("filteredX", prevX);
-            telemetry.addData("filteredY", prevY);
-            telemetry.addData("filteredRX", prevRX);
 
             telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getAngle().getDegrees());
             telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
@@ -79,8 +68,6 @@ public class TeleOp extends LinearOpMode {
 
 
             telemetry.update();
-
-//            SwerveDrive.getInstance().setFieldRelativeSpeeds(speeds);
         }
     }
 }

@@ -95,4 +95,11 @@ public interface Settings {
                 new Translation2d(4.5, 7.576406229)
         };
     }
+
+    public interface Shooter {
+        //Array of test values
+        double distances[] = {0, 0, 0};
+        double hoodAngles[] = {0, 0, 0};
+        double shooterSpeeds[] = {0, 0, 0};
+    }
 }
