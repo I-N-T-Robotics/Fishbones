@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Swerve;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -27,7 +28,8 @@ public class SwerveModules extends SwerveModuleBase {
     private final EncoderConversion realDriveEncoder; //digital, converted to meters
 
     private final CRServo turnMotor;
-    private final AnalogInput turnEncoder; //better info
+    private final AnalogInput turnEncoder; //better info'
+    private final Gamepad gamepad1;
 
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveModuleCall", "FirstSwerveModuleCall");
@@ -43,10 +45,11 @@ public class SwerveModules extends SwerveModuleBase {
 //        };
 //    }
 
-    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID) {
+    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID, Gamepad gamepad1) {
         super(id, translationOffset);
 
         this.angleOffset = angleOffset;
+        this.gamepad1 = gamepad1;
 
         driveMotor = hardwareMap.get(DcMotorEx.class, driveName);
 
@@ -55,7 +58,7 @@ public class SwerveModules extends SwerveModuleBase {
 
         realDriveEncoder = new EncoderConversion(driveMotor, 2.5, 4, 8192);
 
-        driveControllerPID = new PIDController(/*0.7*/0, 0, 0);
+        driveControllerPID = new PIDController(0.7, 0, 0);
         driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
 
         turnControllerPID = turnPID;
@@ -81,6 +84,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     public void periodic() {
 //        super.periodic();
+        double controllerAngle = (1 / Math.tan(gamepad1.left_stick_y / gamepad1.left_stick_x) * (180/Math.PI));
 
         double ffOutput = driveControllerFF.calculate(getTargetState().speedMetersPerSecond);
         double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
@@ -92,7 +96,7 @@ public class SwerveModules extends SwerveModuleBase {
             driveMotor.setPower(0);
             turnMotor.setPower(0);
         } else {
-            driveMotor.setPower(-finalOutput);
+            driveMotor.setPower((Math.abs(getAngle().getDegrees() - controllerAngle)) <= 5 ? finalOutput : -finalOutput);
             turnMotor.setPower(turnOutput);
         }
 

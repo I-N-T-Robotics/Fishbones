@@ -38,7 +38,9 @@ public interface Field {
     enum NamedTags {
         RED_SCORE,
         BLUE_SCORE,
-        MIDDLE; ;//pattern 1, 2 ,3
+        MIDDLEPPG,
+        MIDDLEPGP,
+        MIDDLEGPP;
 
         public final AprilTag tag;
 
@@ -58,7 +60,9 @@ public interface Field {
     AprilTag[] APRILTAGS = {
             new AprilTag(1, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0)))),
             new AprilTag(2, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0)))),
-            new AprilTag(3, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))))
+            new AprilTag(3, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0)))),
+            new AprilTag(4, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0)))),
+            new AprilTag(5, new Pose3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(0), Units.inchesToMeters(0)), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0))))
     };
 
     public static boolean isValidTag(int id) {

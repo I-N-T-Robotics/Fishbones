@@ -7,10 +7,9 @@ import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.shooterS
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Constants.Field;
-import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
-import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+//import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+//import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -18,24 +17,24 @@ import edu.wpi.first.math.geometry.Translation2d;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
 
-    private Shooter shooter;
-    private ShooterHood hood;
-    private Intake intake;
+//    private Shooter shooter;
+//    private ShooterHood hood;
+//    private Intake intake;
 
     @Override
     public void runOpMode() throws InterruptedException {
         SwerveDrive swerveDrive = null;
         Odometry odometry = null;
-        shooter = new Shooter(hardwareMap);
-        hood = new ShooterHood(hardwareMap);
-        intake = new Intake(hardwareMap);
-
-        shooter.rpmRegression(distances, shooterSpeeds);
-        hood.hoodRegression(distances, hoodAngles);
+//        shooter = new Shooter(hardwareMap);
+//        hood = new ShooterHood(hardwareMap);
+//        intake = new Intake(hardwareMap);
+//
+//        shooter.rpmRegression(distances, shooterSpeeds);
+//        hood.hoodRegression(distances, hoodAngles);
 
         waitForStart();
 
-        swerveDrive = SwerveDrive.createInstance(hardwareMap, telemetry);
+        swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);
         odometry = Odometry.createInstance(hardwareMap, telemetry);
 
         while(opModeIsActive()) {
@@ -56,21 +55,21 @@ public class TeleOp extends LinearOpMode {
             swerveDrive.updateModules();
 
             //shooter + hood
-            if (gamepad1.bWasPressed()) {
-                shooter.setShooterSpeed(shooterDistance);
-                hood.setHoodPosition(shooterHoodDistance);
-            } else if (gamepad1.bWasReleased()) {
-                shooter.setShooterSpeed(1); //minimum speed (10 is distance)
-            }
+//            if (gamepad1.bWasPressed()) {
+//                shooter.setShooterSpeed(shooterDistance);
+//                hood.setHoodPosition(shooterHoodDistance);
+//            } else if (gamepad1.bWasReleased()) {
+//                shooter.setShooterSpeed(1); //minimum speed (10 is distance)
+//            }
 
             //intake
-            if (gamepad1.yWasPressed() && intake.isToggled == false) {
-                intake.intake();
-                intake.swapToggle();
-            } else if (gamepad1.yWasPressed() && intake.isToggled == true) {
-                intake.intakeStop();
-                intake.swapToggle();
-            }
+//            if (gamepad1.yWasPressed() && intake.isToggled == false) {
+//                intake.intake();
+//                intake.swapToggle();
+//            } else if (gamepad1.yWasPressed() && intake.isToggled == true) {
+//                intake.intakeStop();
+//                intake.swapToggle();
+//            }
 
             telemetry.addData("inputLeftX", gamepad1.left_stick_x);
             telemetry.addData("inputLeftY", -gamepad1.left_stick_y);

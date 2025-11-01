@@ -3,6 +3,7 @@
 package org.firstinspires.ftc.teamcode.Swerve;
 
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -24,7 +25,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 
 public class SwerveDrive {
     private static SwerveDrive instance;
-
+    private final Gamepad gamepad1;
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveCall", "FirstSwerveCall");
 //        telemetry.update();
@@ -39,9 +40,9 @@ public class SwerveDrive {
 //        );
 //    }
 
-    public static SwerveDrive createInstance(HardwareMap hardwareMap, Telemetry telemetry) {
+    public static SwerveDrive createInstance(Gamepad gamepad1, HardwareMap hardwareMap, Telemetry telemetry) {
         if (instance == null) {
-            instance = new SwerveDrive(hardwareMap, telemetry);
+            instance = new SwerveDrive(gamepad1,hardwareMap, telemetry);
         }
         return instance;
     }
@@ -63,7 +64,8 @@ public class SwerveDrive {
 //    private final TelemetryPacket statesPub;
     //private final FtcDashboard dashboard;
 
-    protected SwerveDrive(HardwareMap hardwareMap, Telemetry telemetry) {
+    protected SwerveDrive(Gamepad gamepad1, HardwareMap hardwareMap, Telemetry telemetry) {
+        this.gamepad1 = gamepad1;
 
 //        telemetry.addData("CreateModules", "CreateModules");
 //        telemetry.update();
@@ -75,28 +77,32 @@ public class SwerveDrive {
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
                         Settings.Swerve.FrontRight.TURN_ENCODER,
-                        new PIDController(0.015, 0, 0)),
+                        new PIDController(0, 0, 0),
+                        gamepad1),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
                         Settings.Swerve.FrontLeft.MODULE_OFFSET,
                         Settings.Swerve.FrontLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.FrontLeft.Turn,
                         Settings.Swerve.FrontLeft.DRIVE,
                         Settings.Swerve.FrontLeft.TURN_ENCODER,
-                        new PIDController(0.024, 0, 0)),
+                        new PIDController(0.015, 0, 0),
+                        gamepad1),
                 new SwerveModules(hardwareMap, telemetry, "Back Right",
                         Settings.Swerve.BackRight.MODULE_OFFSET,
                         Settings.Swerve.BackRight.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackRight.Turn,
                         Settings.Swerve.BackRight.DRIVE,
                         Settings.Swerve.BackRight.TURN_ENCODER,
-                        new PIDController(0.025, 0, 0)),
+                        new PIDController(0.015, 0, 0),
+                        gamepad1),
                 new SwerveModules(hardwareMap, telemetry, "Back Left",
                         Settings.Swerve.BackLeft.MODULE_OFFSET,
                         Settings.Swerve.BackLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackLeft.Turn,
                         Settings.Swerve.BackLeft.DRIVE,
                         Settings.Swerve.BackLeft.TURN_ENCODER,
-                        new PIDController(0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
+                        new PIDController(0.01, 0, 0),
+                        gamepad1)//real testing 0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
         };
 
         kinematics = new SwerveDriveKinematics(getModuleOffsets());
@@ -168,7 +174,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 10 /*max module speed*/);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 100 /*max module speed*/); //fix
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
