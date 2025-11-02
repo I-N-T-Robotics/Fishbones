@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 //import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 //import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
+import org.firstinspires.ftc.teamcode.Swerve.SwerveModules;
 
 import edu.wpi.first.math.geometry.Translation2d;
 
@@ -71,15 +72,30 @@ public class TeleOp extends LinearOpMode {
 //                intake.swapToggle();
 //            }
 
-            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
-            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
-            telemetry.addData("inputRightX", gamepad1.right_stick_x);
+//            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
+//            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
+//            telemetry.addData("inputRightX", gamepad1.right_stick_x);
 
-            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getAngle().getDegrees());
-            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
+            SwerveDrive dr = SwerveDrive.getInstance() ;
+            SwerveModules mod0 = dr.getSwerveModules()[0];
+            SwerveModules mod2 = dr.getSwerveModules()[2];
+
+            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
             telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
-            telemetry.addData("BR Turn",SwerveDrive.getInstance().getSwerveModules()[2].getAngle().getDegrees());
+            telemetry.addData("BR Turn", SwerveDrive.getInstance().getSwerveModules()[2].getAngle().getDegrees());
             telemetry.addData("BL Turn", SwerveDrive.getInstance().getSwerveModules()[3].getAngle().getDegrees());
+
+            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
+            telemetry.addData("VxSpeed", dr.globalSpeed.vxMetersPerSecond);
+            telemetry.addData("VySpeed", dr.globalSpeed.vyMetersPerSecond);
+
+            telemetry.addData("Twistdx",  dr.globalTwistdx);
+            telemetry.addData("PID",  mod0.globalPID);
+            telemetry.addData("Target", mod0.globalTarget);
+            telemetry.addData("Angle", mod0.globalAngle);
+
+            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
+            telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
 
             telemetry.update();
         }

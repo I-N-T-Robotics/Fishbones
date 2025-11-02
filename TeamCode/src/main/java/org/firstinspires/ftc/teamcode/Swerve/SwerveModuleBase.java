@@ -10,10 +10,8 @@ public abstract class SwerveModuleBase{
     private final Translation2d offset;
     private SwerveModuleState targetState;
 
-//    private final void debug() {
-//        telemetry.addData("FirstSwerveBaseCall", "FirstSwerveBaseCall");
-//        telemetry.update();
-//    }
+    public double rawTargetAngleState;
+    public double rawTargetSpeedState;
 
     public SwerveModuleBase(String id, Translation2d offset) {
         this.id = id;
@@ -39,7 +37,9 @@ public abstract class SwerveModuleBase{
 
     public final void setTargetState(SwerveModuleState state) {
         targetState = new SwerveModuleState(state.speedMetersPerSecond, state.angle);
-        //targetState.optimize(getAngle());
+        rawTargetAngleState = targetState.angle.getDegrees();
+        rawTargetSpeedState = targetState.speedMetersPerSecond;
+        targetState.optimize(getAngle());
     }
 
     public final SwerveModuleState getTargetState() {
@@ -49,11 +49,4 @@ public abstract class SwerveModuleBase{
     public double getTargetStateAngle() {
         return targetState.angle.getDegrees();
     }
-
-//    public void periodic() {
-//        telemetry.addData("SwerveModule" + getID() + "Target Angle", getTargetState());
-//        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
-//        telemetry.addData("SwerveModule" + getID() + "Target Velocity", targetState.speedMetersPerSecond);
-//        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
-//    }
 }

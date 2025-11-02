@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.Swerve;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -16,6 +15,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModules extends SwerveModuleBase {
     private final Rotation2d angleOffset;
@@ -29,7 +29,12 @@ public class SwerveModules extends SwerveModuleBase {
 
     private final CRServo turnMotor;
     private final AnalogInput turnEncoder; //better info'
-    private final Gamepad gamepad1;
+    private final boolean reversed;
+
+    public double globalff;
+    public double globalPID;
+    public double globalTarget;
+    public double globalAngle ;
 
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveModuleCall", "FirstSwerveModuleCall");
@@ -45,26 +50,38 @@ public class SwerveModules extends SwerveModuleBase {
 //        };
 //    }
 
-    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID, Gamepad gamepad1) {
+    public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID, boolean reversed) {
         super(id, translationOffset);
 
         this.angleOffset = angleOffset;
-        this.gamepad1 = gamepad1;
 
         driveMotor = hardwareMap.get(DcMotorEx.class, driveName);
 
         turnMotor = hardwareMap.get(CRServo.class, turnName);
         turnEncoder = hardwareMap.get(AnalogInput.class, turnEncoderName);
 
-        realDriveEncoder = new EncoderConversion(driveMotor, 2.5, 4, 8192);
+        realDriveEncoder = new EncoderConversion(driveMotor, 2.5, 8.6, 8192);
 
         driveControllerPID = new PIDController(0.7, 0, 0);
         driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
 
         turnControllerPID = turnPID;
-        turnControllerPID.enableContinuousInput(0, 180); //choose between this and .optimize
+        turnControllerPID.enableContinuousInput(-180, 180);
 
+        this.reversed = reversed;
+
+//        if (reversed) {
+//            driveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        }
         //configure?
+    }
+
+    public double getRawTurnTargetAngle() {
+        return rawTargetAngleState;
+    }
+
+    public double getRawSpeedTarget() {
+        return rawTargetSpeedState;
     }
 
     @Override
@@ -74,7 +91,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     @Override
     public Rotation2d getAngle() {
-        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 8192, 2).getDegrees() - angleOffset.getDegrees());
+        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 2).getDegrees() - angleOffset.getDegrees());
     }
 
     @Override
@@ -84,11 +101,15 @@ public class SwerveModules extends SwerveModuleBase {
 
     public void periodic() {
 //        super.periodic();
-        double controllerAngle = (1 / Math.tan(gamepad1.left_stick_y / gamepad1.left_stick_x) * (180/Math.PI));
 
         double ffOutput = driveControllerFF.calculate(getTargetState().speedMetersPerSecond);
         double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
         double finalOutput = ffOutput + PIDOutput;
+
+        globalff = ffOutput;
+        globalPID = PIDOutput;
+        globalTarget = getTargetState().speedMetersPerSecond;
+        globalAngle = getTargetState().angle.getDegrees() ;
 
         double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
 
@@ -96,14 +117,8 @@ public class SwerveModules extends SwerveModuleBase {
             driveMotor.setPower(0);
             turnMotor.setPower(0);
         } else {
-            driveMotor.setPower((Math.abs(getAngle().getDegrees() - controllerAngle)) <= 5 ? finalOutput : -finalOutput);
+            driveMotor.setPower(finalOutput);
             turnMotor.setPower(turnOutput);
         }
-
-//        telemetry.addData("SwerveModules" + getID() + "DriveVoltage", finalOutput);
-//        telemetry.addData("SwerveModules" + getID() + "TurnVoltage", turnOutput);
-//        telemetry.addData("SwerveModule" + getID() + "Angle", getAngle().getDegrees());
-//        telemetry.addData("SwerveModule" + getID() + "AngleError", getTargetStateAngle() - getAngle().getDegrees());
-//        telemetry.addData("SwerveModule" + getID() + "Velocity", getVelocity());
     }
 }

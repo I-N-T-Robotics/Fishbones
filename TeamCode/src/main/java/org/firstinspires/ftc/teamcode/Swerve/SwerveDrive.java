@@ -26,6 +26,9 @@ import edu.wpi.first.units.measure.AngularVelocity;
 public class SwerveDrive {
     private static SwerveDrive instance;
     private final Gamepad gamepad1;
+
+    public ChassisSpeeds globalSpeed;
+    public double globalTwistdx;
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveCall", "FirstSwerveCall");
 //        telemetry.update();
@@ -77,32 +80,32 @@ public class SwerveDrive {
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
                         Settings.Swerve.FrontRight.TURN_ENCODER,
-                        new PIDController(0, 0, 0),
-                        gamepad1),
+                        new PIDController(0.007, 0, 0.0002),
+                        false),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
                         Settings.Swerve.FrontLeft.MODULE_OFFSET,
                         Settings.Swerve.FrontLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.FrontLeft.Turn,
                         Settings.Swerve.FrontLeft.DRIVE,
                         Settings.Swerve.FrontLeft.TURN_ENCODER,
-                        new PIDController(0.015, 0, 0),
-                        gamepad1),
+                        new PIDController(0.007, 0, 0.0002),
+                        true),
                 new SwerveModules(hardwareMap, telemetry, "Back Right",
                         Settings.Swerve.BackRight.MODULE_OFFSET,
                         Settings.Swerve.BackRight.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackRight.Turn,
                         Settings.Swerve.BackRight.DRIVE,
                         Settings.Swerve.BackRight.TURN_ENCODER,
-                        new PIDController(0.015, 0, 0),
-                        gamepad1),
+                        new PIDController(0.007, 0, 0.0002),
+                        false),
                 new SwerveModules(hardwareMap, telemetry, "Back Left",
                         Settings.Swerve.BackLeft.MODULE_OFFSET,
                         Settings.Swerve.BackLeft.ABSOLUTE_OFFSET,
                         Settings.Swerve.BackLeft.Turn,
                         Settings.Swerve.BackLeft.DRIVE,
                         Settings.Swerve.BackLeft.TURN_ENCODER,
-                        new PIDController(0.01, 0, 0),
-                        gamepad1)//real testing 0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
+                        new PIDController(0.007, 0, 0.0002),
+                        false)//real testing 0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
         };
 
         kinematics = new SwerveDriveKinematics(getModuleOffsets());
@@ -188,10 +191,6 @@ public class SwerveDrive {
     }
 
     public void setChassisSpeeds(ChassisSpeeds robotSpeeds) {
-//        telemetry.addData("Chassis Target X Speed", robotSpeeds.vxMetersPerSecond);
-//        telemetry.addData("Chassis Target Y Speed", robotSpeeds.vyMetersPerSecond);
-//        telemetry.addData("Chassis Target Omega", robotSpeeds.omegaRadiansPerSecond);
-
         setModuleStates(kinematics.toSwerveModuleStates(robotSpeeds));
     }
 
@@ -214,16 +213,13 @@ public class SwerveDrive {
 
     //drive functions
     public void drive(Translation2d velocity, double rotation) {
-//        telemetry.addData("runningDrive", "runningDrive");
-//        telemetry.update();
 
         ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                 velocity.getY(), -velocity.getX(),
                 -rotation,
                 Odometry.getInstance().getPose().getRotation());
-//        telemetry.addData("odometryCall", "odometryCall");
-//        telemetry.update();
 
+        globalSpeed = speeds;
         Pose2d robotVel = new Pose2d(
                 Settings.DT * speeds.vxMetersPerSecond,
                 Settings.DT * speeds.vyMetersPerSecond,
@@ -234,6 +230,7 @@ public class SwerveDrive {
                 twistVel.dx / Settings.DT,
                 twistVel.dy / Settings.DT,
                 twistVel.dtheta / Settings.DT));
+        globalTwistdx = twistVel.dx / Settings.DT;
 
 //        telemetry.addData("finishDrive", "finishDrive");
 //        telemetry.update();
@@ -278,19 +275,5 @@ public class SwerveDrive {
 //            ));
 //        }
 
-//        dashboard.sendTelemetryPacket(statesPub);
-
-//        telemetry.addData("Gyro Angle (deg)", getGyroAngle().getDegrees());
-//        telemetry.addData("Gyro Pitch (deg)", getGyroPitch().getDegrees());
-//        telemetry.addData("Gyro Roll (deg)", getGyroRoll().getDegrees());
-//
-//        telemetry.addData("Forward Acceleration (Gs)", getForwardAccelerationGs());
-//        telemetry.addData("X Acceleration", gyro.getWorldLinearAccelX());
-//        telemetry.addData("Y Acceleration", gyro.getWorldLinearAccelY());
-//        telemetry.addData("Z Acceleration", gyro.getWorldLinearAccelZ());
-//
-//        telemetry.addData("Chassis X Speed", getChassisSpeeds().vxMetersPerSecond);
-//        telemetry.addData("Chassis Y Speed", getChassisSpeeds().vyMetersPerSecond);
-//        telemetry.addData("Chassis Rotation", getChassisSpeeds().omegaRadiansPerSecond);
     }
 }
