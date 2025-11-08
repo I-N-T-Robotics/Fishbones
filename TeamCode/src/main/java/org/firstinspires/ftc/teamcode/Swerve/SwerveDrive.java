@@ -70,9 +70,6 @@ public class SwerveDrive {
     protected SwerveDrive(Gamepad gamepad1, HardwareMap hardwareMap, Telemetry telemetry) {
         this.gamepad1 = gamepad1;
 
-//        telemetry.addData("CreateModules", "CreateModules");
-//        telemetry.update();
-
         this.modules = new SwerveModules[] {
                 new SwerveModules(hardwareMap, telemetry, "Front Right",
                         Settings.Swerve.FrontRight.MODULE_OFFSET,
