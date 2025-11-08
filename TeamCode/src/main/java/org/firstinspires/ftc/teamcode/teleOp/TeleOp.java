@@ -35,8 +35,11 @@ public class TeleOp extends LinearOpMode {
 
         waitForStart();
 
+
         swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);
         odometry = Odometry.createInstance(hardwareMap, telemetry);
+
+        SwerveDrive dr = SwerveDrive.getInstance() ;
 
         while(opModeIsActive()) {
 
@@ -76,9 +79,10 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
 //            telemetry.addData("inputRightX", gamepad1.right_stick_x);
 
-            SwerveDrive dr = SwerveDrive.getInstance() ;
             SwerveModules mod0 = dr.getSwerveModules()[0];
+            SwerveModules mod1 = dr.getSwerveModules()[1];
             SwerveModules mod2 = dr.getSwerveModules()[2];
+            SwerveModules mod3 = dr.getSwerveModules()[3];
 
             telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
             telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
@@ -90,12 +94,30 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("VySpeed", dr.globalSpeed.vyMetersPerSecond);
 
             telemetry.addData("Twistdx",  dr.globalTwistdx);
-            telemetry.addData("PID",  mod0.globalPID);
+            telemetry.addData("FRPID",  mod0.globalPID);
+            telemetry.addData("FLPID",  mod1.globalPID);
+            telemetry.addData("BRPID",  mod2.globalPID);
+            telemetry.addData("BLPID",  mod3.globalPID);
             telemetry.addData("Target", mod0.globalTarget);
             telemetry.addData("Angle", mod0.globalAngle);
 
             telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
             telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
+
+            telemetry.addData("FRV", mod0.getVolts());
+            telemetry.addData("FLV", mod1.getVolts());
+            telemetry.addData("BRV", mod2.getVolts());
+            telemetry.addData("BLV", mod3.getVolts());
+
+            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
+            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
+            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
+            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
+
+            telemetry.addData("FRDrV", mod0.getVelocity());
+            telemetry.addData("FLDrV", mod1.getVelocity());
+            telemetry.addData("BRDrV", mod2.getVelocity());
+            telemetry.addData("BLDrV", mod3.getVelocity());
 
             telemetry.update();
         }

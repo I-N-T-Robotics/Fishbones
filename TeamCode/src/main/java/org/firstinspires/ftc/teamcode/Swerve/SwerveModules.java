@@ -2,8 +2,11 @@ package org.firstinspires.ftc.teamcode.Swerve;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.configuration.ServoHubConfiguration;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
@@ -34,7 +37,9 @@ public class SwerveModules extends SwerveModuleBase {
     public double globalff;
     public double globalPID;
     public double globalTarget;
-    public double globalAngle ;
+    public double globalAngle;
+
+    private ServoHubConfiguration servoHub;
 
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveModuleCall", "FirstSwerveModuleCall");
@@ -56,6 +61,9 @@ public class SwerveModules extends SwerveModuleBase {
         this.angleOffset = angleOffset;
 
         driveMotor = hardwareMap.get(DcMotorEx.class, driveName);
+        driveMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         turnMotor = hardwareMap.get(CRServo.class, turnName);
         turnEncoder = hardwareMap.get(AnalogInput.class, turnEncoderName);
@@ -70,10 +78,18 @@ public class SwerveModules extends SwerveModuleBase {
 
         this.reversed = reversed;
 
-//        if (reversed) {
-//            driveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        }
+        if (reversed) {
+            driveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
         //configure?
+    }
+
+    public double getVolts() {
+        return turnEncoder.getVoltage();
+    }
+
+    public int getRawDriveEncoder() {
+        return driveMotor.getCurrentPosition();
     }
 
     public double getRawTurnTargetAngle() {
@@ -91,7 +107,7 @@ public class SwerveModules extends SwerveModuleBase {
 
     @Override
     public Rotation2d getAngle() {
-        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 2).getDegrees() - angleOffset.getDegrees());
+        return Rotation2d.fromDegrees(new AnalogEncoder(turnEncoder, 3.3, 1).getDegrees() - angleOffset.getDegrees());
     }
 
     @Override
@@ -117,7 +133,7 @@ public class SwerveModules extends SwerveModuleBase {
             driveMotor.setPower(0);
             turnMotor.setPower(0);
         } else {
-            driveMotor.setPower(finalOutput);
+            driveMotor.setPower(-finalOutput);
             turnMotor.setPower(turnOutput);
         }
     }
