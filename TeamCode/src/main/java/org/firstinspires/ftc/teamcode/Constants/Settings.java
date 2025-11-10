@@ -56,6 +56,7 @@ public interface Settings {
             Translation2d MODULE_OFFSET = new Translation2d(WIDTH * -0.5, LENGTH * +0.5);
         }
         double MODULE_VELOCITY_DEADBAND = 0.05;
+        double MODULE_TURN_DEADBAND = 0;
     }
 
     public interface VisionConstants {

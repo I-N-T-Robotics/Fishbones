@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.configuration.ServoHubConfiguration;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
@@ -18,7 +18,6 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModules extends SwerveModuleBase {
     private final Rotation2d angleOffset;
@@ -38,8 +37,6 @@ public class SwerveModules extends SwerveModuleBase {
     public double globalPID;
     public double globalTarget;
     public double globalAngle;
-
-    private ServoHubConfiguration servoHub;
 
 //    private final void debug() {
 //        telemetry.addData("FirstSwerveModuleCall", "FirstSwerveModuleCall");
@@ -115,26 +112,105 @@ public class SwerveModules extends SwerveModuleBase {
         return new SwerveModulePosition(realDriveEncoder.getPositionMeters(), getAngle());
     }
 
-    public void periodic() {
-//        super.periodic();
+    private Thread driveThread;
+    private Thread turnThread;
+    private volatile boolean running = false;
 
-        double ffOutput = driveControllerFF.calculate(getTargetState().speedMetersPerSecond);
-        double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
-        double finalOutput = ffOutput + PIDOutput;
+    private static final double loopTime = 0.02;
 
-        globalff = ffOutput;
-        globalPID = PIDOutput;
-        globalTarget = getTargetState().speedMetersPerSecond;
-        globalAngle = getTargetState().angle.getDegrees() ;
+    public void startThreads() {
+        if (running) return;
+        running = true;
 
-        double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
+        driveThread = new Thread(() -> {
+            ElapsedTime timer = new ElapsedTime();
+            while (running) {
+                timer.reset();
 
-        if(Math.abs(driveControllerPID.getSetpoint()) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
-            driveMotor.setPower(0);
-            turnMotor.setPower(0);
-        } else {
-            driveMotor.setPower(-finalOutput);
-            turnMotor.setPower(turnOutput);
-        }
+                double targetSpeed = getTargetState().speedMetersPerSecond;
+                double ffOutput = driveControllerFF.calculate(targetSpeed);
+                double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
+                double finalOutput = Math.max(-1.0, Math.min(1.0, ffOutput + PIDOutput));
+
+                globalTarget = getTargetState().speedMetersPerSecond;
+
+                if (Math.abs(driveControllerPID.getSetpoint()) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
+                    driveMotor.setPower(0);
+//                } else if (reversed) {
+//                    driveMotor.setPower(finalOutput);
+                } else {
+                    driveMotor.setPower(-finalOutput);
+                }
+
+                double elapsed = timer.seconds();
+                long sleepMs = (long) Math.max(0, (loopTime - elapsed) * 1000);
+                if (elapsed > loopTime && sleepMs > 0) {
+                    try {
+                        Thread.sleep(sleepMs);
+                    } catch (InterruptedException e) {
+                        running = false;
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        });
+
+        turnThread = new Thread(() -> {
+            ElapsedTime timer = new ElapsedTime();
+            while (running) {
+                timer.reset();
+
+                double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
+
+                globalAngle = getTargetState().angle.getDegrees() ;
+
+                if (Math.abs(turnControllerPID.getSetpoint()) < Settings.Swerve.MODULE_TURN_DEADBAND) {
+                    turnMotor.setPower(0);
+                } else {
+                    turnMotor.setPower(Math.max(-1.0, Math.min(1.0, turnOutput)));
+                }
+
+                double elapsed = timer.seconds();
+                long sleepMs = (long) Math.max(0, (loopTime - elapsed) * 1000);
+                if (elapsed > loopTime && sleepMs > 0) {
+                    try {
+                        Thread.sleep(sleepMs);
+                    } catch (InterruptedException e) {
+                        running = false;
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        });
+
+        driveThread.start();
+        turnThread.start();
     }
+
+    public void stopThreads() {
+        running = false;
+        if (driveThread != null) driveThread.interrupt();
+        if (turnThread != null) turnThread.interrupt();
+    }
+
+//    public void periodic() {
+//        double ffOutput = driveControllerFF.calculate(getTargetState().speedMetersPerSecond);
+//        double PIDOutput = driveControllerPID.calculate(getVelocity(), getTargetState().speedMetersPerSecond);
+//        double finalOutput = ffOutput + PIDOutput;
+//
+//        globalff = ffOutput;
+//        globalPID = PIDOutput;
+//        globalTarget = getTargetState().speedMetersPerSecond;
+//        globalAngle = getTargetState().angle.getDegrees();
+//
+//        double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
+//
+//        if(Math.abs(driveControllerPID.getSetpoint()) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
+//            driveMotor.setPower(0);
+//            turnMotor.setPower(0);
+//        } else {
+//            driveMotor.setPower(-finalOutput);
+//            turnMotor.setPower(turnOutput);
+//        }
+//    }
 }

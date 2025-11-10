@@ -24,8 +24,8 @@ public class TeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        SwerveDrive swerveDrive = null;
-        Odometry odometry = null;
+        SwerveDrive swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);;
+        Odometry odometry = Odometry.createInstance(hardwareMap, telemetry);
 //        shooter = new Shooter(hardwareMap);
 //        hood = new ShooterHood(hardwareMap);
 //        intake = new Intake(hardwareMap);
@@ -35,11 +35,8 @@ public class TeleOp extends LinearOpMode {
 
         waitForStart();
 
-
-        swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);
-        odometry = Odometry.createInstance(hardwareMap, telemetry);
-
-        SwerveDrive dr = SwerveDrive.getInstance() ;
+        SwerveDrive dr = SwerveDrive.getInstance();
+        swerveDrive.startModuleThreads();
 
         while(opModeIsActive()) {
 
@@ -56,7 +53,8 @@ public class TeleOp extends LinearOpMode {
             Translation2d velocity = new Translation2d(x, y);
 
             swerveDrive.drive(velocity, rx);
-            swerveDrive.updateModules();
+
+            //swerveDrive.updateModules();
 
             //shooter + hood
 //            if (gamepad1.bWasPressed()) {
@@ -84,42 +82,43 @@ public class TeleOp extends LinearOpMode {
             SwerveModules mod2 = dr.getSwerveModules()[2];
             SwerveModules mod3 = dr.getSwerveModules()[3];
 
-            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
-            telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
-            telemetry.addData("BR Turn", SwerveDrive.getInstance().getSwerveModules()[2].getAngle().getDegrees());
-            telemetry.addData("BL Turn", SwerveDrive.getInstance().getSwerveModules()[3].getAngle().getDegrees());
-
-            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
-            telemetry.addData("VxSpeed", dr.globalSpeed.vxMetersPerSecond);
-            telemetry.addData("VySpeed", dr.globalSpeed.vyMetersPerSecond);
-
-            telemetry.addData("Twistdx",  dr.globalTwistdx);
-            telemetry.addData("FRPID",  mod0.globalPID);
-            telemetry.addData("FLPID",  mod1.globalPID);
-            telemetry.addData("BRPID",  mod2.globalPID);
-            telemetry.addData("BLPID",  mod3.globalPID);
-            telemetry.addData("Target", mod0.globalTarget);
-            telemetry.addData("Angle", mod0.globalAngle);
-
-            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
-            telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
-
-            telemetry.addData("FRV", mod0.getVolts());
-            telemetry.addData("FLV", mod1.getVolts());
-            telemetry.addData("BRV", mod2.getVolts());
-            telemetry.addData("BLV", mod3.getVolts());
-
-            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
-            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
-            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
-            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
-
-            telemetry.addData("FRDrV", mod0.getVelocity());
-            telemetry.addData("FLDrV", mod1.getVelocity());
-            telemetry.addData("BRDrV", mod2.getVelocity());
-            telemetry.addData("BLDrV", mod3.getVelocity());
-
-            telemetry.update();
+//            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
+//            telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
+//            telemetry.addData("BR Turn", SwerveDrive.getInstance().getSwerveModules()[2].getAngle().getDegrees());
+//            telemetry.addData("BL Turn", SwerveDrive.getInstance().getSwerveModules()[3].getAngle().getDegrees());
+//
+//            telemetry.addData("FR Turn", SwerveDrive.getInstance().getSwerveModules()[0].getTargetStateAngle());
+//            telemetry.addData("VxSpeed", dr.globalSpeed.vxMetersPerSecond);
+//            telemetry.addData("VySpeed", dr.globalSpeed.vyMetersPerSecond);
+//
+//            telemetry.addData("Twistdx",  dr.globalTwistdx);
+//            telemetry.addData("FRPID",  mod0.globalPID);
+//            telemetry.addData("FLPID",  mod1.globalPID);
+//            telemetry.addData("BRPID",  mod2.globalPID);
+//            telemetry.addData("BLPID",  mod3.globalPID);
+//            telemetry.addData("Target", mod0.globalTarget);
+//            telemetry.addData("Angle", mod0.globalAngle);
+//
+//            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
+//            telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
+//
+//            telemetry.addData("FRV", mod0.getVolts());
+//            telemetry.addData("FLV", mod1.getVolts());
+//            telemetry.addData("BRV", mod2.getVolts());
+//            telemetry.addData("BLV", mod3.getVolts());
+//
+//            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
+//            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
+//            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
+//            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
+//
+//            telemetry.addData("FRDrV", mod0.getVelocity());
+//            telemetry.addData("FLDrV", mod1.getVelocity());
+//            telemetry.addData("BRDrV", mod2.getVelocity());
+//            telemetry.addData("BLDrV", mod3.getVelocity());
+//
+//            telemetry.update();
         }
+        //swerveDrive.stopModuleThreads();
     }
 }

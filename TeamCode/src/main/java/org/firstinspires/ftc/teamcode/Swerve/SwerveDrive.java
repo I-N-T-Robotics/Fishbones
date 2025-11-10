@@ -51,10 +51,6 @@ public class SwerveDrive {
     }
 
     public static SwerveDrive getInstance() {
-
-//        telemetry.addData("SwerveInstanceCall", "SwerveInstanceCall");
-//        telemetry.update();
-
         return instance;
     }
 
@@ -174,7 +170,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 100 /*max module speed*/); //fix
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 40 /*max module speed*/); //fix
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
@@ -191,9 +187,21 @@ public class SwerveDrive {
         setModuleStates(kinematics.toSwerveModuleStates(robotSpeeds));
     }
 
-    public void updateModules() {
+//    public void updateModules() {
+//        for (SwerveModules module : modules) {
+//            module.periodic();
+//        }
+//    }
+
+    public void startModuleThreads() {
         for (SwerveModules module : modules) {
-            module.periodic();
+            module.startThreads();
+        }
+    }
+
+    public void stopModuleThreads() {
+        for (SwerveModules module : modules) {
+            module.stopThreads();
         }
     }
 
@@ -228,9 +236,6 @@ public class SwerveDrive {
                 twistVel.dy / Settings.DT,
                 twistVel.dtheta / Settings.DT));
         globalTwistdx = twistVel.dx / Settings.DT;
-
-//        telemetry.addData("finishDrive", "finishDrive");
-//        telemetry.update();
     }
 
     public void stop() {
@@ -258,19 +263,9 @@ public class SwerveDrive {
         return Units.RadiansPerSecond.of(this.getChassisSpeeds().omegaRadiansPerSecond);
     }
 
-    public void periodic() {
-//        telemetry.update();
-
+   public void periodic() {
         Odometry odometry = Odometry.getInstance();
         Pose2d pose = odometry.getPose();
         Rotation2d angle = pose.getRotation();
-
-//        for (int i = 0; i < modules.length; i++) {
-//            modules2D[i].setPose(new Pose2d(
-//                    pose.getTranslation().plus(modules[i].getModuleOffset().rotateBy(angle)),
-//                    modules[i].getAngle().plus(angle)
-//            ));
-//        }
-
     }
 }
