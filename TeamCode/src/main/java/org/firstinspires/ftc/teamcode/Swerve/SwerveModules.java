@@ -40,19 +40,8 @@ public class SwerveModules extends SwerveModuleBase {
     public double globalAngle;
     public double globalVel;
 
-//    private final void debug() {
-//        telemetry.addData("FirstSwerveModuleCall", "FirstSwerveModuleCall");
-//        telemetry.update();
-//    }
-
-//    public static SwerveModuleBase[] getModules() {
-//        return new SwerveModuleBase[] {
-//                new SwerveModules("Front Right", Settings.Swerve.FrontRight.MODULE_OFFSET, Rotation2d.fromDegrees(-153.632812 + 180), Settings.Swerve.FrontRight.Turn, Settings.Swerve.FrontRight.DRIVE, Settings.Swerve.FrontRight.TURN_ENCODER, Settings.Swerve.FrontRight.DRIVE_ENCODER)
-//                //new SwerveModules("Front Left",  Settings.Swerve.FrontLeft.MODULE_OFFSET,  Rotation2d.fromDegrees(147.919922 + 180),  Settings.Swerve.FrontLeft.Turn, Settings.Swerve.FrontLeft.DRIVE, Settings.Swerve.FrontLeft.TURN_ENCODER, Settings.Swerve.FrontLeft.DRIVE_ENCODER),
-//                //new SwerveModules("Back Left",   Settings.Swerve.BackLeft.MODULE_OFFSET,   Rotation2d.fromDegrees(73.125 + 180),   Settings.Swerve.BackLeft.Turn, Settings.Swerve.BackLeft.DRIVE, Settings.Swerve.BackLeft.TURN_ENCODER, Settings.Swerve.BackLeft.DRIVE_ENCODER),
-//                //new SwerveModules("Back Right",  Settings.Swerve.BackRight.MODULE_OFFSET,  Rotation2d.fromDegrees(-2.02184 + 180),  Settings.Swerve.BackRight.Turn, Settings.Swerve.BackRight.DRIVE, Settings.Swerve.BackRight.TURN_ENCODER, Settings.Swerve.BackRight.DRIVE_ENCODER)
-//        };
-//    }
+    private double lastDirection = 0;
+    static double filteredVel = 0;
 
     public SwerveModules(HardwareMap hardwareMap, Telemetry telemetry, String id, Translation2d translationOffset, Rotation2d angleOffset, String turnName, String driveName, String turnEncoderName, PIDController turnPID, boolean reversed) {
         super(id, translationOffset);
@@ -122,17 +111,41 @@ public class SwerveModules extends SwerveModuleBase {
     public void periodic() {
         double targetSpeed = getTargetState().speedMetersPerSecond;
         double measuredVel = getVelocity();
+        double absTarget = Math.abs(targetSpeed);
+        double direction = Math.signum(targetSpeed);
 
-        if (Math.abs(targetSpeed) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
-            driveMotor.setPower(0);
+        // --- Tunable constants ---
+        final double STOP_DEADBAND = 0.10;   // m/s: joystick zone for "stopped"
+        final double ZERO_VEL_BAND = 0.1;   // m/s: measured velocity zone
+        final double ZERO_CROSS_SMOOTH = 0.5; // fraction of speed range where we fade to zero
+
+        double finalOutput = 0.0;
+
+        // --- Handle stopping cleanly ---
+        if (absTarget < STOP_DEADBAND && Math.abs(measuredVel) < ZERO_VEL_BAND) {
+            driveControllerPID.reset();
+            finalOutput = 0;
         } else {
-            double direction = Math.signum(targetSpeed);
-            double magnitude = Math.abs(targetSpeed);
+            double ffOutput = driveControllerFF.calculate(absTarget);
+            double pidOutput = driveControllerPID.calculate(Math.abs(measuredVel), absTarget);
+            finalOutput = direction * (ffOutput + pidOutput);
 
-            double ffOutput = driveControllerFF.calculate(magnitude);
-            double pidOutput = driveControllerPID.calculate(Math.abs(measuredVel), magnitude);
-
-            double finalOutput = direction * (ffOutput + pidOutput);
+            // --- Smooth zero-crossing damping ---
+            // If target direction flips and target magnitude is small, fade output instead of instant sign change
+            if (direction != 0 && direction != lastDirection) {
+                if (absTarget < ZERO_CROSS_SMOOTH) {
+                    // fade through zero to avoid snap reversal
+                    finalOutput *= absTarget / ZERO_CROSS_SMOOTH;
+                } else if (Math.abs(measuredVel) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
+                    // safe to commit to new direction
+                    driveControllerPID.reset();
+                    lastDirection = direction;
+                } else {
+                    // still coasting — hold last direction until slowed down
+                    direction = lastDirection;
+                    finalOutput = direction * Math.abs(finalOutput);
+                }
+            }
 
             if (!reversed) {
                 driveMotor.setPower(finalOutput);
@@ -142,8 +155,8 @@ public class SwerveModules extends SwerveModuleBase {
             }
         }
 
+        // --- Turning control ---
         double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
-
         globalTurn = turnOutput;
         globalAngle = getTargetState().angle.getDegrees();
 
@@ -153,6 +166,7 @@ public class SwerveModules extends SwerveModuleBase {
             turnMotor.setPower(turnOutput);
         }
 
+        // --- Telemetry tracking ---
         globalFinal = driveMotor.getPower();
         globalTarget = targetSpeed;
         globalVel = measuredVel;
