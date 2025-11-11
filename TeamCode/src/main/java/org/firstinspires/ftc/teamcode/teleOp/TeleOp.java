@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.distance
 import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.hoodAngles;
 import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.shooterSpeeds;
 
+import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Constants.Field;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 //import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveModules;
+import org.firstinspires.ftc.teamcode.Util.navx.AHRS;
 
 import edu.wpi.first.math.geometry.Translation2d;
 
@@ -21,11 +23,15 @@ public class TeleOp extends LinearOpMode {
 //    private Shooter shooter;
 //    private ShooterHood hood;
 //    private Intake intake;
+    private AHRS gyro;
+    public volatile double yaw;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        SwerveDrive swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);;
-        Odometry odometry = Odometry.createInstance(hardwareMap, telemetry);
+        SwerveDrive swerveDrive = null;
+        Odometry odometry = null;
+        gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
+                AHRS.DeviceDataType.kProcessedData);
 //        shooter = new Shooter(hardwareMap);
 //        hood = new ShooterHood(hardwareMap);
 //        intake = new Intake(hardwareMap);
@@ -33,10 +39,24 @@ public class TeleOp extends LinearOpMode {
 //        shooter.rpmRegression(distances, shooterSpeeds);
 //        hood.hoodRegression(distances, hoodAngles);
 
+        new Thread(new gyroReader()).start();
+
         waitForStart();
 
+        swerveDrive = SwerveDrive.createInstance(gamepad1, hardwareMap, telemetry);
+
         SwerveDrive dr = SwerveDrive.getInstance();
-        swerveDrive.startModuleThreads();
+
+        SwerveModules mod0 = dr.getSwerveModules()[0];
+        SwerveModules mod1 = dr.getSwerveModules()[1];
+        SwerveModules mod2 = dr.getSwerveModules()[2];
+        SwerveModules mod3 = dr.getSwerveModules()[3];
+
+        mod0.setDriveConfig();
+        mod1.setDriveConfig();
+        mod2.setDriveConfig();
+        mod3.setDriveConfig();
+        odometry = Odometry.createInstance();
 
         while(opModeIsActive()) {
 
@@ -53,8 +73,7 @@ public class TeleOp extends LinearOpMode {
             Translation2d velocity = new Translation2d(x, y);
 
             swerveDrive.drive(velocity, rx);
-
-            //swerveDrive.updateModules();
+            swerveDrive.updateModules();
 
             //shooter + hood
 //            if (gamepad1.bWasPressed()) {
@@ -73,14 +92,24 @@ public class TeleOp extends LinearOpMode {
 //                intake.swapToggle();
 //            }
 
-//            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
-//            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
-//            telemetry.addData("inputRightX", gamepad1.right_stick_x);
+            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
+            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
+            telemetry.addData("inputRightX", gamepad1.right_stick_x);
 
-            SwerveModules mod0 = dr.getSwerveModules()[0];
-            SwerveModules mod1 = dr.getSwerveModules()[1];
-            SwerveModules mod2 = dr.getSwerveModules()[2];
-            SwerveModules mod3 = dr.getSwerveModules()[3];
+            telemetry.addData("globalFinalOutput0", mod0.globalFinal);
+            telemetry.addData("globalFinalOutput1", mod1.globalFinal);
+            telemetry.addData("globalFinalOutput2", mod2.globalFinal);
+            telemetry.addData("globalFinalOutput3", mod3.globalFinal);
+
+            telemetry.addData("globalVel0", mod0.globalVel);
+            telemetry.addData("globalVel1", mod1.globalVel);
+            telemetry.addData("globalVel2", mod2.globalVel);
+            telemetry.addData("globalVel", mod3.globalVel);
+
+            telemetry.addData("globalTarget0", mod0.globalTarget);
+            telemetry.addData("globalTarget1", mod1.globalTarget);
+            telemetry.addData("globalTarget2", mod2.globalTarget);
+            telemetry.addData("globalTarget3", mod3.globalTarget);
 
 //            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
 //            telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
@@ -107,18 +136,40 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("BRV", mod2.getVolts());
 //            telemetry.addData("BLV", mod3.getVolts());
 //
-//            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
-//            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
-//            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
-//            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
+            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
+            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
+            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
+            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
 //
 //            telemetry.addData("FRDrV", mod0.getVelocity());
 //            telemetry.addData("FLDrV", mod1.getVelocity());
 //            telemetry.addData("BRDrV", mod2.getVelocity());
 //            telemetry.addData("BLDrV", mod3.getVelocity());
-//
-//            telemetry.update();
+
+            telemetry.addData("DrivePower", mod0.globalFinal);
+            telemetry.addData("MeasuredVelocity", mod0.getVelocity());
+            telemetry.addData("TargetVelocity", mod0.globalTarget);
+
+            telemetry.update();
         }
-        //swerveDrive.stopModuleThreads();
+    }
+    private class gyroReader implements Runnable {
+        @Override
+        public void run() {
+            while (!isStopRequested()) {
+                double currentYaw;
+
+                synchronized (TeleOp.this) {
+                    currentYaw = -Math.toRadians(gyro.getYaw());
+                    yaw = currentYaw;
+                }
+
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 }

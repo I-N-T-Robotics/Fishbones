@@ -51,6 +51,10 @@ public class SwerveDrive {
     }
 
     public static SwerveDrive getInstance() {
+
+//        telemetry.addData("SwerveInstanceCall", "SwerveInstanceCall");
+//        telemetry.update();
+
         return instance;
     }
 
@@ -170,7 +174,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 40 /*max module speed*/); //fix
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 100 /*max module speed*/); //fix
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
@@ -187,21 +191,9 @@ public class SwerveDrive {
         setModuleStates(kinematics.toSwerveModuleStates(robotSpeeds));
     }
 
-//    public void updateModules() {
-//        for (SwerveModules module : modules) {
-//            module.periodic();
-//        }
-//    }
-
-    public void startModuleThreads() {
+    public void updateModules() {
         for (SwerveModules module : modules) {
-            module.startThreads();
-        }
-    }
-
-    public void stopModuleThreads() {
-        for (SwerveModules module : modules) {
-            module.stopThreads();
+            module.periodic();
         }
     }
 
@@ -263,9 +255,19 @@ public class SwerveDrive {
         return Units.RadiansPerSecond.of(this.getChassisSpeeds().omegaRadiansPerSecond);
     }
 
-   public void periodic() {
+    public void periodic() {
+//        telemetry.update();
+
         Odometry odometry = Odometry.getInstance();
         Pose2d pose = odometry.getPose();
         Rotation2d angle = pose.getRotation();
+
+//        for (int i = 0; i < modules.length; i++) {
+//            modules2D[i].setPose(new Pose2d(
+//                    pose.getTranslation().plus(modules[i].getModuleOffset().rotateBy(angle)),
+//                    modules[i].getAngle().plus(angle)
+//            ));
+//        }
+
     }
 }

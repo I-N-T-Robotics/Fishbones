@@ -25,20 +25,10 @@ import edu.wpi.first.math.numbers.N3;
 public class Odometry {
 
     private static Odometry instance;
-    private Telemetry telemetry;
 
-//    public final void debug() {
-//        telemetry.addData("FirstOdometryCall", "FirstOdometryCall");
-//        telemetry.update();
-//    }
-
-//    static {
-//        instance = new Odometry();
-//    }
-
-    public static Odometry createInstance(HardwareMap hardwareMap, Telemetry telemetry) {
+    public static Odometry createInstance() {
         if (instance == null) {
-            instance = new Odometry(hardwareMap, telemetry);
+            instance = new Odometry();
         }
         return instance;
     }
@@ -54,10 +44,6 @@ public class Odometry {
     private final SwerveDrivePoseEstimator estimator;
     private Boolean VISION_ACTIVE;
 
-//    private final Field2d field;
-//    private final FieldObject2d odometryPose2D;
-//    private final FieldObject2d estimatorPose2D;
-
     private final LinearRegression xyRegression;
     private final LinearRegression thetaRegression;
 
@@ -66,9 +52,7 @@ public class Odometry {
     private Translation2d robotVelocity;
     private Translation2d lastPose;
 
-    private Odometry(HardwareMap hardwareMap, Telemetry telemetry) {
-        this.telemetry = telemetry;
-
+    private Odometry() {
         SwerveDrive swerve = SwerveDrive.getInstance();
         odometry = new SwerveDriveOdometry(
                 swerve.getKinematics(),
@@ -84,7 +68,6 @@ public class Odometry {
                 VecBuilder.fill(0.9, 0.9, 10.0)); //std of vision estimate
 
         VISION_ACTIVE = true;
-        telemetry.addData("Vision Active", VISION_ACTIVE);
 
 //        field = new Field2d();
 //        swerve.initFieldObject(field);
@@ -138,9 +121,6 @@ public class Odometry {
         double xyStdDev = xyRegression.calculatePoint(distance);
         double thetaStdDev = thetaRegression.calculatePoint(distance);
 
-        telemetry.addData("xyStdDev", xyStdDev);
-        telemetry.addData("thetaStdDev", thetaStdDev);
-
         return VecBuilder.fill(
                 xyStdDev,
                 xyStdDev,
@@ -189,18 +169,6 @@ public class Odometry {
 
         robotVelocity = getPose().getTranslation().minus(lastPose).div(Settings.DT);
         lastPose = getPose().getTranslation();
-
-        telemetry.addData("Odometry X", odometry.getPoseMeters().getTranslation().getX());
-        telemetry.addData("Odometry Y", odometry.getPoseMeters().getTranslation().getY());
-        telemetry.addData("Odometry Rotation", odometry.getPoseMeters().getRotation().getDegrees());
-
-        telemetry.addData("Estimator Odometry X", estimator.getEstimatedPosition().getTranslation().getX());
-        telemetry.addData("Estimator Odometry Y", estimator.getEstimatedPosition().getTranslation().getY());
-        telemetry.addData("Estimator Odometry Rotation", estimator.getEstimatedPosition().getRotation().getDegrees());
-
-        telemetry.addData("Estimator VX", robotVelocity.getX());
-        telemetry.addData("Estimator VY", robotVelocity.getX());
-
 //        odometryPose2D.setPose(odometry.getPoseMeters());
 //        estimatorPose2D.setPose(estimator.getEstimatedPosition());
     }

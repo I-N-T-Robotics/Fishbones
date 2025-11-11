@@ -37,7 +37,7 @@ public class EncoderConversion {
 
         double velocity = 0;
         if(deltaTime > 0) {
-            velocity = (deltaPosition / deltaTime) * velocityConversionFactor;
+            velocity = -(deltaPosition / deltaTime) * velocityConversionFactor;
         }
 
         lastTimeStamp = currentTime;
