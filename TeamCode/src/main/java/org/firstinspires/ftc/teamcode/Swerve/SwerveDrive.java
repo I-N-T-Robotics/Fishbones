@@ -77,7 +77,7 @@ public class SwerveDrive {
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
                         Settings.Swerve.FrontRight.TURN_ENCODER,
-                        new PIDController(0.007, 0, 0.0002),
+                        new PIDController(0.00707, 0, 0.0001145), //done
                         true),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
                         Settings.Swerve.FrontLeft.MODULE_OFFSET,
@@ -85,7 +85,7 @@ public class SwerveDrive {
                         Settings.Swerve.FrontLeft.Turn,
                         Settings.Swerve.FrontLeft.DRIVE,
                         Settings.Swerve.FrontLeft.TURN_ENCODER,
-                        new PIDController(0.007, 0, 0.0002),
+                        new PIDController(0.00715, 0, 0.0001145),
                         false),
                 new SwerveModules(hardwareMap, telemetry, "Back Right",
                         Settings.Swerve.BackRight.MODULE_OFFSET,
@@ -93,7 +93,7 @@ public class SwerveDrive {
                         Settings.Swerve.BackRight.Turn,
                         Settings.Swerve.BackRight.DRIVE,
                         Settings.Swerve.BackRight.TURN_ENCODER,
-                        new PIDController(0.007, 0, 0.0002),
+                        new PIDController(0.00715, 0, 0.0001145),
                         true),
                 new SwerveModules(hardwareMap, telemetry, "Back Left",
                         Settings.Swerve.BackLeft.MODULE_OFFSET,
@@ -101,7 +101,7 @@ public class SwerveDrive {
                         Settings.Swerve.BackLeft.Turn,
                         Settings.Swerve.BackLeft.DRIVE,
                         Settings.Swerve.BackLeft.TURN_ENCODER,
-                        new PIDController(0.007, 0, 0.0002),
+                        new PIDController(0.00715, 0, 0.0001145),
                         false)//real testing 0.03, 0, 0.0000021))//0.05, 0.0045, 0.01))
         };
 
@@ -174,7 +174,7 @@ public class SwerveDrive {
             throw new IllegalArgumentException("Provided incorrect number of states for swerve drive modules");
         }
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, 100 /*max module speed*/); //fix
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, 45 /*max module speed*/); //fix
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(states[i]);
@@ -200,8 +200,8 @@ public class SwerveDrive {
     public void setXMode() {
         setModuleStates(
                 new SwerveModuleState[] {
-                        new SwerveModuleState(0, Rotation2d.fromDegrees(225)),
                         new SwerveModuleState(0, Rotation2d.fromDegrees(315)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(225)),
                         new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
                         new SwerveModuleState(0, Rotation2d.fromDegrees(135))
                 }

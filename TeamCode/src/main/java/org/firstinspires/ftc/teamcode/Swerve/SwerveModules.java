@@ -56,7 +56,7 @@ public class SwerveModules extends SwerveModuleBase {
         realDriveEncoder = new EncoderConversion(driveMotor, 2.5, 8.6, 8192);
 
         driveControllerPID = new PIDController(0.7, 0, 0);
-        driveControllerFF = new SimpleMotorFeedforward(0, 0, 0);
+        driveControllerFF = new SimpleMotorFeedforward(0.1, 0.5, 0);
 
         turnControllerPID = turnPID;
         turnControllerPID.enableContinuousInput(-180, 180);
@@ -116,8 +116,8 @@ public class SwerveModules extends SwerveModuleBase {
 
         // --- Tunable constants ---
         final double STOP_DEADBAND = 0.10;   // m/s: joystick zone for "stopped"
-        final double ZERO_VEL_BAND = 0.1;   // m/s: measured velocity zone
-        final double ZERO_CROSS_SMOOTH = 0.5; // fraction of speed range where we fade to zero
+        final double ZERO_VEL_BAND = 0.2;   // m/s: measured velocity zone
+        final double ZERO_CROSS_SMOOTH = 0.7; // fraction of speed range where we fade to zero
 
         double finalOutput = 0.0;
 

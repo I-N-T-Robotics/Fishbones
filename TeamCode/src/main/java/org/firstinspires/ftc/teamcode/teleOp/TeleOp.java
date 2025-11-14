@@ -25,6 +25,7 @@ public class TeleOp extends LinearOpMode {
 //    private Intake intake;
     private AHRS gyro;
     public volatile double yaw;
+    private boolean xModeActive = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -72,8 +73,19 @@ public class TeleOp extends LinearOpMode {
             //drive
             Translation2d velocity = new Translation2d(x, y);
 
-            swerveDrive.drive(velocity, rx);
+            if (!xModeActive) {
+                swerveDrive.drive(velocity, rx);
+            }
             swerveDrive.updateModules();
+
+            if (gamepad1.yWasPressed()) {
+                xModeActive = !xModeActive;
+                if (xModeActive) {
+                    swerveDrive.setXMode();
+                } else {
+                    swerveDrive.stop();
+                }
+            }
 
             //shooter + hood
 //            if (gamepad1.bWasPressed()) {
@@ -96,20 +108,22 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
             telemetry.addData("inputRightX", gamepad1.right_stick_x);
 
-            telemetry.addData("globalFinalOutput0", mod0.globalFinal);
-            telemetry.addData("globalFinalOutput1", mod1.globalFinal);
-            telemetry.addData("globalFinalOutput2", mod2.globalFinal);
-            telemetry.addData("globalFinalOutput3", mod3.globalFinal);
+            telemetry.addData("FRAngleError", mod0.getAngle().getDegrees() - mod0.getTargetStateAngle());
 
-            telemetry.addData("globalVel0", mod0.globalVel);
-            telemetry.addData("globalVel1", mod1.globalVel);
-            telemetry.addData("globalVel2", mod2.globalVel);
-            telemetry.addData("globalVel", mod3.globalVel);
-
-            telemetry.addData("globalTarget0", mod0.globalTarget);
-            telemetry.addData("globalTarget1", mod1.globalTarget);
-            telemetry.addData("globalTarget2", mod2.globalTarget);
-            telemetry.addData("globalTarget3", mod3.globalTarget);
+//            telemetry.addData("globalFinalOutput0", mod0.globalFinal);
+//            telemetry.addData("globalFinalOutput1", mod1.globalFinal);
+//            telemetry.addData("globalFinalOutput2", mod2.globalFinal);
+//            telemetry.addData("globalFinalOutput3", mod3.globalFinal);
+//
+//            telemetry.addData("globalVel0", mod0.globalVel);
+//            telemetry.addData("globalVel1", mod1.globalVel);
+//            telemetry.addData("globalVel2", mod2.globalVel);
+//            telemetry.addData("globalVel", mod3.globalVel);
+//
+//            telemetry.addData("globalTarget0", mod0.globalTarget);
+//            telemetry.addData("globalTarget1", mod1.globalTarget);
+//            telemetry.addData("globalTarget2", mod2.globalTarget);
+//            telemetry.addData("globalTarget3", mod3.globalTarget);
 
 //            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
 //            telemetry.addData("FL Turn", SwerveDrive.getInstance().getSwerveModules()[1].getAngle().getDegrees());
@@ -128,7 +142,8 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("Target", mod0.globalTarget);
 //            telemetry.addData("Angle", mod0.globalAngle);
 //
-//            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
+            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
+            telemetry.addData("BRAngle", mod2.getAngle());
 //            telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
 //
 //            telemetry.addData("FRV", mod0.getVolts());
@@ -146,9 +161,9 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("BRDrV", mod2.getVelocity());
 //            telemetry.addData("BLDrV", mod3.getVelocity());
 
-            telemetry.addData("DrivePower", mod0.globalFinal);
-            telemetry.addData("MeasuredVelocity", mod0.getVelocity());
-            telemetry.addData("TargetVelocity", mod0.globalTarget);
+//            telemetry.addData("DrivePower", mod0.globalFinal);
+//            telemetry.addData("MeasuredVelocity", mod0.getVelocity());
+//            telemetry.addData("TargetVelocity", mod0.globalTarget);
 
             telemetry.update();
         }
