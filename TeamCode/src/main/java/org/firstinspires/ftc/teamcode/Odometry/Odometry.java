@@ -1,13 +1,176 @@
+//package org.firstinspires.ftc.teamcode.Odometry;
+//
+//import com.qualcomm.robotcore.hardware.HardwareMap;
+//
+//import org.firstinspires.ftc.robotcore.external.Telemetry;
+//import org.firstinspires.ftc.teamcode.Constants.Field;
+//import org.firstinspires.ftc.teamcode.Constants.Settings;
+//import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
+//import org.firstinspires.ftc.teamcode.Util.LinearRegression;
+//import org.firstinspires.ftc.teamcode.Util.VisionUtil.AprilTag;
+//import org.firstinspires.ftc.teamcode.Util.VisionUtil.VisionData;
+//import org.firstinspires.ftc.teamcode.Vision.AprilTagVision;
+//
+//import java.util.ArrayList;
+//
+//import edu.wpi.first.math.VecBuilder;
+//import edu.wpi.first.math.Vector;
+//import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+//import edu.wpi.first.math.geometry.Pose2d;
+//import edu.wpi.first.math.geometry.Translation2d;
+//import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+//import edu.wpi.first.math.numbers.N3;
+//
+//
+//public class Odometry {
+//
+//    private static Odometry instance;
+//
+//    public static Odometry createInstance() {
+//        if (instance == null) {
+//            instance = new Odometry();
+//        }
+//        return instance;
+//    }
+//
+//    public static Odometry getInstance() {
+//        if (instance == null) {
+//            throw new IllegalStateException("Odometry not initialized");
+//        }
+//        return instance;
+//    }
+//
+//    private final SwerveDriveOdometry odometry;
+//    private final SwerveDrivePoseEstimator estimator;
+//    private Boolean VISION_ACTIVE;
+//
+//    private final LinearRegression xyRegression;
+//    private final LinearRegression thetaRegression;
+//
+//    private Pose2d lastGoodPose;
+//
+//    private Translation2d robotVelocity;
+//    private Translation2d lastPose;
+//
+//    private Odometry() {
+//        SwerveDrive swerve = SwerveDrive.getInstance();
+//        odometry = new SwerveDriveOdometry(
+//                swerve.getKinematics(),
+//                swerve.getGyroAngle(),
+//                swerve.getModulePositions(),
+//                new Pose2d());
+//        estimator = new SwerveDrivePoseEstimator(
+//                swerve.getKinematics(),
+//                swerve.getGyroAngle(),
+//                swerve.getModulePositions(),
+//                new Pose2d(),
+//                VecBuilder.fill(0.1, 0.1, 0.1), //std of pose estimate
+//                VecBuilder.fill(0.9, 0.9, 10.0)); //std of vision estimate
+//
+//        VISION_ACTIVE = true;
+//
+//        xyRegression = new LinearRegression(Settings.VisionConstants.xyStdDevs);
+//        thetaRegression = new LinearRegression(Settings.VisionConstants.thetaStdDevs);
+//
+//        lastGoodPose = new Pose2d();
+//
+//        robotVelocity = new Translation2d();
+//        lastPose = new Translation2d();
+//    }
+//
+//    public void setVisionEnabled(boolean enabled) {
+//        VISION_ACTIVE = enabled;
+//    }
+//
+//    public Pose2d getPose() {
+//        return estimator.getEstimatedPosition();
+//    }
+//
+//    public double getDistanceToTag(AprilTag tag) {
+//        return getPose()
+//                .getTranslation()
+//                .getDistance(tag.getLocation().getTranslation().toTranslation2d());
+//    }
+//
+//    public void reset(Pose2d pose) {
+//        SwerveDrive swerve = SwerveDrive.getInstance();
+//        odometry.resetPosition(swerve.getGyroAngle(), swerve.getModulePositions(), pose);
+//        estimator.resetPosition(swerve.getGyroAngle(), swerve.getModulePositions(), pose);
+//    }
+//
+//    private void updateOdometry() {
+//        SwerveDrive swerve = SwerveDrive.getInstance();
+//        odometry.update(swerve.getGyroAngle(), swerve.getModulePositions());
+//        estimator.update(swerve.getGyroAngle(), swerve.getModulePositions());
+//    }
+//
+//    private Vector<N3> getStandardDeviation(VisionData data) {
+//        double distance = data.getDistanceToPrimaryTag();
+//
+//        double xyStdDev = xyRegression.calculatePoint(distance);
+//        double thetaStdDev = thetaRegression.calculatePoint(distance);
+//
+//        return VecBuilder.fill(
+//                xyStdDev,
+//                xyStdDev,
+//                thetaStdDev);
+//    }
+//
+//    private void updateEstimatorWithVisionData(ArrayList<VisionData> outputs) {
+//        Pose2d poseSum = new Pose2d();
+//        double timestampSum = 0;
+//        double areaSum = 0;
+//
+//        for (VisionData data : outputs) {
+//            Pose2d weighted = data.getPose().times(data.getArea());
+//
+//            poseSum = new Pose2d(
+//                    poseSum.getTranslation().plus(weighted.getTranslation()),
+//                    poseSum.getRotation().plus(weighted.getRotation())
+//            );
+//
+//            areaSum += data.getArea();
+//
+//            timestampSum += data.getTimestamp() * data.getArea();
+//        }
+//
+//        estimator.addVisionMeasurement(poseSum.div(areaSum), timestampSum/areaSum, VecBuilder.fill(0.7, 0.7, 10));
+//    }
+//
+//    public void periodic() {
+//        ArrayList<VisionData> outputs = AprilTagVision.getOutputs();
+//
+//        updateOdometry();
+//
+//        if(VISION_ACTIVE && !outputs.isEmpty()) {
+//            updateEstimatorWithVisionData(outputs);
+//        }
+//
+//        if(estimator.getEstimatedPosition().getTranslation().getNorm() > new Translation2d(Field.LENGTH, Field.WIDTH).getNorm() ||
+//            odometry.getPoseMeters().getTranslation().getNorm() > new Translation2d(Field.LENGTH, Field.WIDTH).getNorm() ||
+//                Double.isNaN(estimator.getEstimatedPosition().getX()) || Double.isNaN(estimator.getEstimatedPosition().getY()) ||
+//                Double.isNaN(odometry.getPoseMeters().getX()) || Double.isNaN(odometry.getPoseMeters().getY())
+//        ) {
+//            reset(lastGoodPose);
+//        } else {
+//            lastGoodPose = getPose();
+//        }
+//
+//        robotVelocity = getPose().getTranslation().minus(lastPose).div(Settings.DT);
+//        lastPose = getPose().getTranslation();
+//    }
+//
+//    public Translation2d getRobotVelocity() {
+//        return robotVelocity;
+//    }
+//}
+
 package org.firstinspires.ftc.teamcode.Odometry;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants.Field;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 import org.firstinspires.ftc.teamcode.Util.LinearRegression;
-import org.firstinspires.ftc.teamcode.Util.VisionUtil.AprilTag;
 import org.firstinspires.ftc.teamcode.Util.VisionUtil.VisionData;
 import org.firstinspires.ftc.teamcode.Vision.AprilTagVision;
 
@@ -19,8 +182,8 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N3;
-
 
 public class Odometry {
 
@@ -42,66 +205,70 @@ public class Odometry {
 
     private final SwerveDriveOdometry odometry;
     private final SwerveDrivePoseEstimator estimator;
-    private Boolean VISION_ACTIVE;
-
     private final LinearRegression xyRegression;
     private final LinearRegression thetaRegression;
 
-    private Pose2d lastGoodPose;
+    private final AprilTagVision vision;
 
+    private Pose2d lastGoodPose;
     private Translation2d robotVelocity;
     private Translation2d lastPose;
 
     private Odometry() {
         SwerveDrive swerve = SwerveDrive.getInstance();
+
         odometry = new SwerveDriveOdometry(
                 swerve.getKinematics(),
                 swerve.getGyroAngle(),
                 swerve.getModulePositions(),
                 new Pose2d());
+
         estimator = new SwerveDrivePoseEstimator(
                 swerve.getKinematics(),
                 swerve.getGyroAngle(),
                 swerve.getModulePositions(),
                 new Pose2d(),
-                VecBuilder.fill(0.1, 0.1, 0.1), //std of pose estimate
-                VecBuilder.fill(0.9, 0.9, 10.0)); //std of vision estimate
-
-        VISION_ACTIVE = true;
+                VecBuilder.fill(0.1, 0.1, 0.1),  // std dev for odometry
+                VecBuilder.fill(0.9, 0.9, 10.0)  // std dev for vision
+        );
 
         xyRegression = new LinearRegression(Settings.VisionConstants.xyStdDevs);
         thetaRegression = new LinearRegression(Settings.VisionConstants.thetaStdDevs);
 
-        lastGoodPose = new Pose2d();
+        vision = new AprilTagVision();
 
+        lastGoodPose = new Pose2d();
         robotVelocity = new Translation2d();
         lastPose = new Translation2d();
     }
 
     public void setVisionEnabled(boolean enabled) {
-        VISION_ACTIVE = enabled;
     }
 
     public Pose2d getPose() {
         return estimator.getEstimatedPosition();
     }
 
-    public double getDistanceToTag(AprilTag tag) {
+    public double getDistanceToTag(int tagId) {
+        // Simple distance calculation to a field tag
         return getPose()
                 .getTranslation()
-                .getDistance(tag.getLocation().getTranslation().toTranslation2d());
+                .getDistance(Field.getTag(tagId).getLocation().getTranslation().toTranslation2d());
     }
 
     public void reset(Pose2d pose) {
         SwerveDrive swerve = SwerveDrive.getInstance();
-        odometry.resetPosition(swerve.getGyroAngle(), swerve.getModulePositions(), pose);
-        estimator.resetPosition(swerve.getGyroAngle(), swerve.getModulePositions(), pose);
+        SwerveModulePosition[] positions = swerve.getModulePositions();
+        odometry.resetPosition(swerve.getGyroAngle(), positions, pose);
+        estimator.resetPosition(swerve.getGyroAngle(), positions, pose);
     }
 
     private void updateOdometry() {
         SwerveDrive swerve = SwerveDrive.getInstance();
-        odometry.update(swerve.getGyroAngle(), swerve.getModulePositions());
-        estimator.update(swerve.getGyroAngle(), swerve.getModulePositions());
+        SwerveModulePosition[] positions = swerve.getModulePositions();
+
+        odometry.update(swerve.getGyroAngle(), positions);
+        estimator.update(swerve.getGyroAngle(), positions);
     }
 
     private Vector<N3> getStandardDeviation(VisionData data) {
@@ -110,10 +277,7 @@ public class Odometry {
         double xyStdDev = xyRegression.calculatePoint(distance);
         double thetaStdDev = thetaRegression.calculatePoint(distance);
 
-        return VecBuilder.fill(
-                xyStdDev,
-                xyStdDev,
-                thetaStdDev);
+        return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
     }
 
     private void updateEstimatorWithVisionData(ArrayList<VisionData> outputs) {
@@ -123,44 +287,45 @@ public class Odometry {
 
         for (VisionData data : outputs) {
             Pose2d weighted = data.getPose().times(data.getArea());
-
             poseSum = new Pose2d(
                     poseSum.getTranslation().plus(weighted.getTranslation()),
                     poseSum.getRotation().plus(weighted.getRotation())
             );
 
             areaSum += data.getArea();
-
             timestampSum += data.getTimestamp() * data.getArea();
         }
 
-        estimator.addVisionMeasurement(poseSum.div(areaSum), timestampSum/areaSum, VecBuilder.fill(0.7, 0.7, 10));
+        if (areaSum > 0) {
+            estimator.addVisionMeasurement(poseSum.div(areaSum), timestampSum / areaSum, VecBuilder.fill(0.7, 0.7, 10));
+        }
     }
 
     public void periodic() {
-        ArrayList<VisionData> outputs = AprilTagVision.getOutputs();
-
         updateOdometry();
 
-        if(VISION_ACTIVE && !outputs.isEmpty()) {
+        ArrayList<VisionData> outputs = vision.getOutputs(SwerveDrive.getInstance().getAngularVelocity());
+        if (!outputs.isEmpty()) {
             updateEstimatorWithVisionData(outputs);
         }
 
-        if(estimator.getEstimatedPosition().getTranslation().getNorm() > new Translation2d(Field.LENGTH, Field.WIDTH).getNorm() ||
-            odometry.getPoseMeters().getTranslation().getNorm() > new Translation2d(Field.LENGTH, Field.WIDTH).getNorm() ||
-                Double.isNaN(estimator.getEstimatedPosition().getX()) || Double.isNaN(estimator.getEstimatedPosition().getY()) ||
-                Double.isNaN(odometry.getPoseMeters().getX()) || Double.isNaN(odometry.getPoseMeters().getY())
-        ) {
+        Pose2d estimatedPose = estimator.getEstimatedPosition();
+        if (Double.isNaN(estimatedPose.getX()) || Double.isNaN(estimatedPose.getY())
+                || estimatedPose.getTranslation().getNorm() > Field.LENGTH + Field.WIDTH) {
             reset(lastGoodPose);
         } else {
-            lastGoodPose = getPose();
+            lastGoodPose = estimatedPose;
         }
 
-        robotVelocity = getPose().getTranslation().minus(lastPose).div(Settings.DT);
-        lastPose = getPose().getTranslation();
+        robotVelocity = estimatedPose.getTranslation().minus(lastPose).div(Settings.DT);
+        lastPose = estimatedPose.getTranslation();
     }
 
     public Translation2d getRobotVelocity() {
         return robotVelocity;
+    }
+
+    public AprilTagVision getVision() {
+        return vision;
     }
 }
