@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.Constants.Field;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
 //import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 //import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Shooter.Catapult;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveModules;
 import org.firstinspires.ftc.teamcode.Util.navx.AHRS;
@@ -24,6 +25,7 @@ public class TeleOp extends LinearOpMode {
 //    private Shooter shooter;
 //    private ShooterHood hood;
 //    private Intake intake;
+    private Catapult catapult;
     private AHRS gyro;
     public volatile double yaw;
     private boolean xModeActive = false;
@@ -34,6 +36,7 @@ public class TeleOp extends LinearOpMode {
         Odometry odometry = null;
         gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
                 AHRS.DeviceDataType.kProcessedData);
+        catapult = new Catapult(hardwareMap);
 //        shooter = new Shooter(hardwareMap);
 //        hood = new ShooterHood(hardwareMap);
 //        intake = new Intake(hardwareMap);
@@ -90,6 +93,12 @@ public class TeleOp extends LinearOpMode {
                 } else {
                     swerveDrive.stop();
                 }
+            }
+
+            if (gamepad1.xWasPressed()) {
+                catapult.setShoot(10); //fix
+                wait(5);
+                catapult.setStow(0);
             }
 
             //shooter + hood

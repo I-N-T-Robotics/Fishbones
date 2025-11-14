@@ -69,11 +69,6 @@ public class Odometry {
 
         VISION_ACTIVE = true;
 
-//        field = new Field2d();
-//        swerve.initFieldObject(field);
-//        odometryPose2D = field.getObject("Odometry Pose");
-//        estimatorPose2D = field.getObject("Estimator Pose");
-
         xyRegression = new LinearRegression(Settings.VisionConstants.xyStdDevs);
         thetaRegression = new LinearRegression(Settings.VisionConstants.thetaStdDevs);
 
@@ -81,17 +76,11 @@ public class Odometry {
 
         robotVelocity = new Translation2d();
         lastPose = new Translation2d();
-
-//        telemetry.addData("Field", field);
     }
 
     public void setVisionEnabled(boolean enabled) {
         VISION_ACTIVE = enabled;
     }
-
-//    public Field2d getField() {
-//        return field;
-//    }
 
     public Pose2d getPose() {
         return estimator.getEstimatedPosition();
@@ -169,8 +158,6 @@ public class Odometry {
 
         robotVelocity = getPose().getTranslation().minus(lastPose).div(Settings.DT);
         lastPose = getPose().getTranslation();
-//        odometryPose2D.setPose(odometry.getPoseMeters());
-//        estimatorPose2D.setPose(estimator.getEstimatedPosition());
     }
 
     public Translation2d getRobotVelocity() {
