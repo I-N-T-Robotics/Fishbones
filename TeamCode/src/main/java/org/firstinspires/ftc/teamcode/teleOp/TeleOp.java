@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Swerve.SwerveDrive;
 import org.firstinspires.ftc.teamcode.Swerve.SwerveModules;
 import org.firstinspires.ftc.teamcode.Util.navx.AHRS;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -66,15 +67,19 @@ public class TeleOp extends LinearOpMode {
             double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1)) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
             shooterHoodDistance = Math.max(0.0, Math.min(1.0, shooterHoodDistance));
 
-            double x = gamepad1.left_stick_x;
+            double x = gamepad1.left_stick_x * 1.1;
             double y = -gamepad1.left_stick_y;
             double rx = gamepad1.right_stick_x;
 
             //drive
-            Translation2d velocity = new Translation2d(x, y);
+            Translation2d input = new Translation2d(x, y);
+            Rotation2d heading = Odometry.getInstance().getPose().getRotation();
+            Translation2d fieldCentric = input.rotateBy(heading.unaryMinus());
+
+            Translation2d driveInput = new Translation2d(fieldCentric.getX(), fieldCentric.getY());
 
             if (!xModeActive) {
-                swerveDrive.drive(velocity, rx);
+                swerveDrive.drive(driveInput, rx);
             }
             swerveDrive.updateModules();
 

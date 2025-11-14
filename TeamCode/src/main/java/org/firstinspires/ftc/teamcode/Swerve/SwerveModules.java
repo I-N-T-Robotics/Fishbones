@@ -114,14 +114,12 @@ public class SwerveModules extends SwerveModuleBase {
         double absTarget = Math.abs(targetSpeed);
         double direction = Math.signum(targetSpeed);
 
-        // --- Tunable constants ---
-        final double STOP_DEADBAND = 0.10;   // m/s: joystick zone for "stopped"
-        final double ZERO_VEL_BAND = 0.2;   // m/s: measured velocity zone
-        final double ZERO_CROSS_SMOOTH = 0.7; // fraction of speed range where we fade to zero
+        final double STOP_DEADBAND = 0.10;
+        final double ZERO_VEL_BAND = 0.2;
+        final double ZERO_CROSS_SMOOTH = 0.7;
 
         double finalOutput = 0.0;
 
-        // --- Handle stopping cleanly ---
         if (absTarget < STOP_DEADBAND && Math.abs(measuredVel) < ZERO_VEL_BAND) {
             driveControllerPID.reset();
             finalOutput = 0;
@@ -130,18 +128,13 @@ public class SwerveModules extends SwerveModuleBase {
             double pidOutput = driveControllerPID.calculate(Math.abs(measuredVel), absTarget);
             finalOutput = direction * (ffOutput + pidOutput);
 
-            // --- Smooth zero-crossing damping ---
-            // If target direction flips and target magnitude is small, fade output instead of instant sign change
             if (direction != 0 && direction != lastDirection) {
                 if (absTarget < ZERO_CROSS_SMOOTH) {
-                    // fade through zero to avoid snap reversal
                     finalOutput *= absTarget / ZERO_CROSS_SMOOTH;
                 } else if (Math.abs(measuredVel) < Settings.Swerve.MODULE_VELOCITY_DEADBAND) {
-                    // safe to commit to new direction
                     driveControllerPID.reset();
                     lastDirection = direction;
                 } else {
-                    // still coasting — hold last direction until slowed down
                     direction = lastDirection;
                     finalOutput = direction * Math.abs(finalOutput);
                 }
@@ -155,7 +148,6 @@ public class SwerveModules extends SwerveModuleBase {
             }
         }
 
-        // --- Turning control ---
         double turnOutput = turnControllerPID.calculate(getAngle().getDegrees(), getTargetStateAngle());
         globalTurn = turnOutput;
         globalAngle = getTargetState().angle.getDegrees();
@@ -166,7 +158,6 @@ public class SwerveModules extends SwerveModuleBase {
             turnMotor.setPower(turnOutput);
         }
 
-        // --- Telemetry tracking ---
         globalFinal = driveMotor.getPower();
         globalTarget = targetSpeed;
         globalVel = measuredVel;

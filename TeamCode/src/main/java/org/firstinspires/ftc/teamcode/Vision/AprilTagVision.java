@@ -16,7 +16,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class AprilTagVision extends SubsystemBase {
+public class AprilTagVision {
 
     public LimelightHelpers.PoseEstimate lastEstimate = new LimelightHelpers.PoseEstimate();
 
