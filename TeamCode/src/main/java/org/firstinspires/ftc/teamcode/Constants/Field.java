@@ -97,8 +97,8 @@ public interface Field {
         return null;
     }
 
-//    public static Pose2d getAllianceScore() {
-//        return (Robot.isBlue() ? NamedTags.BLUE_SCORE : NamedTags.RED_SCORE)
-//                .getLocation().toPose2d();
-//    }
+    public static Pose2d getAllianceGoalPose() {
+        return (Settings.isBlue ? NamedTags.BLUE_SCORE : NamedTags.RED_SCORE)
+                .getLocation().toPose2d();
+    }
 }

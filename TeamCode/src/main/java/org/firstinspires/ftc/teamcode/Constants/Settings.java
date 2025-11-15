@@ -13,6 +13,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 
 public interface Settings {
 
+    boolean isBlue = false;
+
     double DT = 1.0 / 50.0; //delta time, update time, 20ms
 
     double WIDTH = Units.inchesToMeters(16);
@@ -57,6 +59,7 @@ public interface Settings {
         }
         double MODULE_VELOCITY_DEADBAND = 0.05;
         double MODULE_TURN_DEADBAND = 0;
+        double MAX_SPEED = 40;
     }
 
     public interface VisionConstants {
@@ -102,5 +105,12 @@ public interface Settings {
         double distances[] = {0, 0, 0};
         double hoodAngles[] = {0, 0, 0};
         double shooterSpeeds[] = {0, 0, 0};
+    }
+
+    public interface Alignment {
+        double SHOOT_ANGLE = 45;
+        double BIG_TRIANGLE_POINT = 50; //fix
+        double SMALL_TRIANGLE_POINT = 80;
+        double SMALL_TRIANGLE_END = 100;
     }
 }
