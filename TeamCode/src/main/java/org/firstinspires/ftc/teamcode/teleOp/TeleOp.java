@@ -66,8 +66,8 @@ public class TeleOp extends LinearOpMode {
         while(opModeIsActive()) {
 
             //fix to get correct tags
-            double shooterDistance = Odometry.getInstance().getDistanceToTag(Field.getTag(1)) * (537.6/60 /*encoder tick per rotations*/);
-            double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1)) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
+            double shooterDistance = Odometry.getInstance().getDistanceToTag(Field.getTag(1).getID()) * (537.6/60 /*encoder tick per rotations*/);
+            double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1).getID()) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
             shooterHoodDistance = Math.max(0.0, Math.min(1.0, shooterHoodDistance));
 
             double x = gamepad1.left_stick_x * 1.1;
@@ -96,7 +96,7 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (gamepad1.xWasPressed()) {
-                catapult.setShoot(10); //fix
+                catapult.setShoot(22); //fix
                 wait(5);
                 catapult.setStow(0);
             }
@@ -118,11 +118,17 @@ public class TeleOp extends LinearOpMode {
 //                intake.swapToggle();
 //            }
 
-            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
-            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
-            telemetry.addData("inputRightX", gamepad1.right_stick_x);
+            telemetry.addData("CataR", catapult.getCataREncoder());
+            telemetry.addData("CataL", catapult.getCataLEncoder());
 
-            telemetry.addData("FRAngleError", mod0.getAngle().getDegrees() - mod0.getTargetStateAngle());
+            telemetry.addData("CataRVel", catapult.getCataRVel());
+            telemetry.addData("CataLVel", catapult.getCataLVel());
+
+//            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
+//            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);
+//            telemetry.addData("inputRightX", gamepad1.right_stick_x);
+//
+//            telemetry.addData("FRAngleError", mod0.getAngle().getDegrees() - mod0.getTargetStateAngle());
 
 //            telemetry.addData("globalFinalOutput0", mod0.globalFinal);
 //            telemetry.addData("globalFinalOutput1", mod1.globalFinal);
@@ -156,8 +162,8 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("Target", mod0.globalTarget);
 //            telemetry.addData("Angle", mod0.globalAngle);
 //
-            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
-            telemetry.addData("BRAngle", mod2.getAngle());
+//            telemetry.addData("rawTurnTargetBR", mod2.getRawTurnTargetAngle());
+//            telemetry.addData("BRAngle", mod2.getAngle());
 //            telemetry.addData("rawSpeedTargetBR", mod2.getRawSpeedTarget());
 //
 //            telemetry.addData("FRV", mod0.getVolts());
@@ -165,10 +171,10 @@ public class TeleOp extends LinearOpMode {
 //            telemetry.addData("BRV", mod2.getVolts());
 //            telemetry.addData("BLV", mod3.getVolts());
 //
-            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
-            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
-            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
-            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
+//            telemetry.addData("FRDV", mod0.getRawDriveEncoder());
+//            telemetry.addData("FLDV", mod1.getRawDriveEncoder());
+//            telemetry.addData("BRDV", mod2.getRawDriveEncoder());
+//            telemetry.addData("BLDV", mod3.getRawDriveEncoder());
 //
 //            telemetry.addData("FRDrV", mod0.getVelocity());
 //            telemetry.addData("FLDrV", mod1.getVelocity());

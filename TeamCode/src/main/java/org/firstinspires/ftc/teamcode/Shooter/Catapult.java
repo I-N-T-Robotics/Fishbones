@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Catapult {
-    private DcMotorEx cataRight, cataLeft;
+    private final DcMotorEx cataRight, cataLeft;
 
     public Catapult(HardwareMap hardwareMap) {
         cataRight = hardwareMap.get(DcMotorEx.class, "cataRight");
@@ -21,12 +21,35 @@ public class Catapult {
     }
 
     public void setShoot(int pos) {
-        cataRight.setTargetPosition(pos);
+        cataRight.setTargetPosition(-pos);
+        cataRight.setPower(-1);
         cataLeft.setTargetPosition(pos);
+        cataLeft.setPower(1);
+
+        //if past pos-10
+        //zero power this way zero power break launches
     }
 
     public void setStow(int pos) {
-        cataRight.setTargetPosition(pos);
+        cataRight.setTargetPosition(-pos);
+        cataRight.setPower(-1);
         cataLeft.setTargetPosition(pos);
+        cataLeft.setPower(1);
+    }
+
+    public double getCataREncoder() {
+        return cataRight.getCurrentPosition();
+    }
+
+    public double getCataLEncoder() {
+        return cataLeft.getCurrentPosition();
+    }
+
+    public double getCataRVel() {
+        return cataRight.getVelocity();
+    }
+
+    public double getCataLVel() {
+        return cataLeft.getVelocity();
     }
 }

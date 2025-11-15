@@ -244,7 +244,7 @@ public class AprilTagVision {
         ArrayList<VisionData> outputs = new ArrayList<>();
 
         Optional<VisionData> dataOpt = getVisionData(currentAngularVelocity);
-        dataOpt.ifPresent(outputs::add); // only add if not rejected
+        dataOpt.ifPresent(outputs::add);
 
         return outputs;
     }
