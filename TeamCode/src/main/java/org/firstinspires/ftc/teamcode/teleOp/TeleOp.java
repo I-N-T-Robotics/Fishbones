@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.Constants.Settings.Shooter.shooterS
 
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Constants.Field;
 import org.firstinspires.ftc.teamcode.Odometry.Odometry;
@@ -29,6 +30,7 @@ public class TeleOp extends LinearOpMode {
     private AHRS gyro;
     public volatile double yaw;
     private boolean xModeActive = false;
+    private boolean holding = true;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,6 +39,7 @@ public class TeleOp extends LinearOpMode {
         gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
                 AHRS.DeviceDataType.kProcessedData);
         catapult = new Catapult(hardwareMap);
+
 //        shooter = new Shooter(hardwareMap);
 //        hood = new ShooterHood(hardwareMap);
 //        intake = new Intake(hardwareMap);
@@ -66,9 +69,9 @@ public class TeleOp extends LinearOpMode {
         while(opModeIsActive()) {
 
             //fix to get correct tags
-            double shooterDistance = Odometry.getInstance().getDistanceToTag(Field.getTag(1).getID()) * (537.6/60 /*encoder tick per rotations*/);
-            double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1).getID()) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
-            shooterHoodDistance = Math.max(0.0, Math.min(1.0, shooterHoodDistance));
+//            double shooterDistance = Odometry.getInstance().getDistanceToTag(Field.getTag(1)) * (537.6/60 /*encoder tick per rotations*/);
+//            double shooterHoodDistance = (Odometry.getInstance().getDistanceToTag(Field.getTag(1)) / 45.0 /*Example mapping 0°–45° → 0.0–1.0*/);
+//            shooterHoodDistance = Math.max(0.0, Math.min(1.0, shooterHoodDistance));
 
             double x = gamepad1.left_stick_x * 1.1;
             double y = -gamepad1.left_stick_y;
@@ -82,7 +85,7 @@ public class TeleOp extends LinearOpMode {
             Translation2d driveInput = new Translation2d(fieldCentric.getX(), fieldCentric.getY());
 
             if (!xModeActive) {
-                swerveDrive.drive(driveInput, rx);
+                swerveDrive.drive(input, rx); //change for fieldCentric
             }
             swerveDrive.updateModules();
 
@@ -95,10 +98,19 @@ public class TeleOp extends LinearOpMode {
                 }
             }
 
+            if (holding) {
+                catapult.setHold();
+            } else {
+                catapult.setNothing();
+            }
+
             if (gamepad1.xWasPressed()) {
-                catapult.setShoot(22); //fix
-                wait(5);
-                catapult.setStow(0);
+                holding = false;
+                catapult.setShoot();
+            }
+
+            if (gamepad1.bWasPressed()) {
+                holding = true;
             }
 
             //shooter + hood
@@ -118,11 +130,11 @@ public class TeleOp extends LinearOpMode {
 //                intake.swapToggle();
 //            }
 
-            telemetry.addData("CataR", catapult.getCataREncoder());
-            telemetry.addData("CataL", catapult.getCataLEncoder());
-
-            telemetry.addData("CataRVel", catapult.getCataRVel());
-            telemetry.addData("CataLVel", catapult.getCataLVel());
+//            telemetry.addData("CataR", catapult.getCataREncoder());
+//            telemetry.addData("CataL", catapult.getCataLEncoder());
+//
+//            telemetry.addData("CataRVel", catapult.getCataRVel());
+//            telemetry.addData("CataLVel", catapult.getCataLVel());
 
 //            telemetry.addData("inputLeftX", gamepad1.left_stick_x);
 //            telemetry.addData("inputLeftY", -gamepad1.left_stick_y);

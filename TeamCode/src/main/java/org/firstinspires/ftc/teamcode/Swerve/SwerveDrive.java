@@ -77,7 +77,7 @@ public class SwerveDrive {
                         Settings.Swerve.FrontRight.Turn,
                         Settings.Swerve.FrontRight.DRIVE,
                         Settings.Swerve.FrontRight.TURN_ENCODER,
-                        new PIDController(0.00707, 0, 0.0001145), //done
+                        new PIDController(0.0066, 0, 0.0001148), //done
                         true),
                 new SwerveModules(hardwareMap, telemetry, "Front Left",
                         Settings.Swerve.FrontLeft.MODULE_OFFSET,

@@ -14,8 +14,8 @@ import edu.wpi.first.math.util.Units;
 
 public interface Field {
 
-    double WIDTH = Units.inchesToMeters(0);
-    double LENGTH = Units.inchesToMeters(0);
+    double WIDTH = Units.feetToMeters(12);
+    double LENGTH = Units.feetToMeters(12);
 
     public static Pose3d transformToOppositeAlliance(Pose3d pose) {
         Pose3d rotated = pose.rotateBy(new Rotation3d(0, 0, Math.PI));

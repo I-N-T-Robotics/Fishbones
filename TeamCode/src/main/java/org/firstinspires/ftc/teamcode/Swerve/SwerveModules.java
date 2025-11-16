@@ -60,13 +60,6 @@ public class SwerveModules extends SwerveModuleBase {
         turnControllerPID.enableContinuousInput(-180, 180);
 
         this.reversed = reversed;
-
-//        if (!reversed) {
-//            driveMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-//        } else {
-//            driveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        }
-        //configure?
     }
 
     public void setDriveConfig() {

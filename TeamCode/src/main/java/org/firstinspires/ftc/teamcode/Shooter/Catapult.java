@@ -13,28 +13,24 @@ public class Catapult {
 
         cataRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         cataRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        cataRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         cataLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         cataLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        cataLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    public void setShoot(int pos) {
-        cataRight.setTargetPosition(-pos);
+    public void setShoot() {
         cataRight.setPower(-1);
-        cataLeft.setTargetPosition(pos);
         cataLeft.setPower(1);
-
-        //if past pos-10
-        //zero power this way zero power break launches
     }
 
-    public void setStow(int pos) {
-        cataRight.setTargetPosition(-pos);
-        cataRight.setPower(-1);
-        cataLeft.setTargetPosition(pos);
-        cataLeft.setPower(1);
+    public void setNothing() {
+        cataRight.setPower(0);
+        cataLeft.setPower(0);
+    }
+
+    public void setHold() {
+        cataRight.setPower(1);
+        cataLeft.setPower(-1);
     }
 
     public double getCataREncoder() {

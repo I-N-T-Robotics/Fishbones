@@ -2,6 +2,7 @@ repositories {
     mavenCentral()
     google() // Needed for androidx
     gradlePluginPortal()
+    maven { url = "https://mymaven.bylazar.com/releases" }  //pedropathing
 }
 
 wpilibRepositories.addAllReleaseRepositories(project)
@@ -32,6 +33,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
 
-
+    implementation 'com.pedropathing:ftc:2.0.4'
+    implementation 'com.pedropathing:telemetry:1.0.0'
+    implementation 'com.bylazar:fullpanels:1.0.6'
 }
-
