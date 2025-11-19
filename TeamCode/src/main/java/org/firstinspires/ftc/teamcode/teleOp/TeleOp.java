@@ -107,6 +107,8 @@ public class TeleOp extends LinearOpMode {
             if (gamepad1.xWasPressed()) {
                 holding = false;
                 catapult.setShoot();
+                catapult.setShoot();
+                catapult.setShoot();
             }
 
             if (gamepad1.bWasPressed()) {

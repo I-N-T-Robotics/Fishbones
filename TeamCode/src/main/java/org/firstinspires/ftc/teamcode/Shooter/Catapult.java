@@ -19,8 +19,8 @@ public class Catapult {
     }
 
     public void setShoot() {
-        cataRight.setPower(-1);
-        cataLeft.setPower(1);
+        cataRight.setPower(1);
+        cataLeft.setPower(-1);
     }
 
     public void setNothing() {
@@ -29,8 +29,8 @@ public class Catapult {
     }
 
     public void setHold() {
-        cataRight.setPower(1);
-        cataLeft.setPower(-1);
+        cataRight.setPower(-0.2);
+        cataLeft.setPower(0.2);
     }
 
     public double getCataREncoder() {

@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "AutoBlue")
+@Autonomous(name = "AutoBlue", group = "BLUE")
 public class AutoBlue extends LinearOpMode {
     DcMotorEx FrontRightDrive, FrontLeftDrive, BackRightDrive, BackLeftDrive;
     DcMotorEx CataRight, CataLeft;
@@ -39,10 +39,21 @@ public class AutoBlue extends LinearOpMode {
             return;
         }
 
+        timer.reset();
+        while(timer.time() <= 0.1) {
+            FrontRightDrive.setPower(0);
+            FrontLeftDrive.setPower(0);
+            BackRightDrive.setPower(0);
+            BackLeftDrive.setPower(0);
+
+            CataRight.setPower(0);
+            CataLeft.setPower(0);
+        }
+
         //drive back
         //catapult back
         timer.reset();
-        while(timer.time() <= 3) {
+        while(timer.time() <= 0.5) {
             FrontRightDrive.setPower(-1);
             FrontLeftDrive.setPower(-1);
             BackRightDrive.setPower(-1);
@@ -70,7 +81,7 @@ public class AutoBlue extends LinearOpMode {
 
         //turn
         timer.reset();
-        while(timer.time() <= 2) {
+        while(timer.time() <= 0.5) {
             FrontRightDrive.setPower(1);
             BackRightDrive.setPower(1);
 
@@ -80,7 +91,7 @@ public class AutoBlue extends LinearOpMode {
 
         //drive back
         timer.reset();
-        while(timer.time() <= 2) {
+        while(timer.time() <= 0.8) {
             FrontRightDrive.setPower(-1);
             FrontLeftDrive.setPower(-1);
             BackRightDrive.setPower(-1);
