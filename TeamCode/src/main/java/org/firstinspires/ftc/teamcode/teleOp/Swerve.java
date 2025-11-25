@@ -13,7 +13,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class Swerve extends LinearOpMode {
 
-    private AHRS gyro;
+//    private AHRS gyro;
     public volatile double yaw;
     private boolean xModeActive = false;
 
@@ -21,10 +21,10 @@ public class Swerve extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         SwerveDrive swerveDrive = null;
         Odometry odometry = null;
-        gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
-                AHRS.DeviceDataType.kProcessedData);
+//        gyro = AHRS.getInstance(hardwareMap.get(NavxMicroNavigationSensor.class, "gyro"),
+//                AHRS.DeviceDataType.kProcessedData);
 
-        new Thread(new gyroReader()).start();
+//        new Thread(new gyroReader()).start();
 
         waitForStart();
 
@@ -65,25 +65,37 @@ public class Swerve extends LinearOpMode {
                     swerveDrive.stop();
                 }
             }
+
+            telemetry.addData("globalTarget0", mod0.globalTarget);
+            telemetry.addData("globalTarget1", mod1.globalTarget);
+            telemetry.addData("globalTarget2", mod2.globalTarget);
+            telemetry.addData("globalTarget3", mod3.globalTarget);
+
+            telemetry.addData("FR Turn", mod0.getAngle().getDegrees());
+            telemetry.addData("FL Turn", mod1.getAngle().getDegrees());
+            telemetry.addData("BR Turn", mod2.getAngle().getDegrees());
+            telemetry.addData("BL Turn", mod3.getAngle().getDegrees());
+
+            telemetry.update();
         }
     }
-    private class gyroReader implements Runnable {
-        @Override
-        public void run() {
-            while (!isStopRequested()) {
-                double currentYaw;
-
-                synchronized (Swerve.this) {
-                    currentYaw = -Math.toRadians(gyro.getYaw());
-                    yaw = currentYaw;
-                }
-
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-    }
+//    private class gyroReader implements Runnable {
+//        @Override
+//        public void run() {
+//            while (!isStopRequested()) {
+//                double currentYaw;
+//
+//                synchronized (Swerve.this) {
+//                    currentYaw = -Math.toRadians(gyro.getYaw());
+//                    yaw = currentYaw;
+//                }
+//
+//                try {
+//                    Thread.sleep(50);
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
+//            }
+//        }
+//    }
 }
