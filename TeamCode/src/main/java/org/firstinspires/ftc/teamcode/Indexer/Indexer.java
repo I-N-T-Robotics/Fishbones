@@ -6,12 +6,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Indexer {
     private final DcMotorEx shootFeed, topFeed;
-    private final CRServo bottomMove;
+    private final CRServo bottomMoveFront, bottomMoveBack;
 
     public Indexer(HardwareMap hardwareMap) {
         shootFeed = hardwareMap.get(DcMotorEx.class, "shootFeed");
         topFeed = hardwareMap.get(DcMotorEx.class, "topFeed");
 
-        bottomMove = hardwareMap.get(CRServo.class, "bottomMove");
+        bottomMoveFront = hardwareMap.get(CRServo.class, "bottomMoveFront");
+        bottomMoveBack = hardwareMap.get(CRServo.class, "bottomMoveBack");
     }
 }
