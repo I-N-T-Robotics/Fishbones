@@ -29,6 +29,7 @@ public class Intake {
     private int greenCount = 0;
 
     private States state;
+    private States previousState = States.OFF;
 
     private ElapsedTime timer = new ElapsedTime();
 
@@ -69,13 +70,10 @@ public class Intake {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String patternID;
             while ((patternID = reader.readLine()) != null) {
-                if (Integer.parseInt(patternID) == 21) {
-                    pattern = new String[]{"Green", "Purple", "Purple"};
-                } else if (Integer.parseInt(patternID) == 22) {
-                    pattern = new String[]{"Purple", "Green", "Purple"};
-                } else if (Integer.parseInt(patternID) == 23) {
-                    pattern = new String[]{"Purple", "Purple", "Green"};
-                }
+                int id = Integer.parseInt(patternID);
+                if (id == 21) {pattern = new String[]{"Green", "Purple", "Purple"}; }
+                if (id == 22) {pattern = new String[]{"Purple", "Green", "Purple"}; }
+                if (id == 23) {pattern = new String[]{"Purple", "Purple", "Green"}; }
             }
         } catch (IOException e) {
             System.err.println("Error reading from file: " + e.getMessage()); //stop turret? fix
@@ -148,8 +146,29 @@ public class Intake {
         return backSense.argb();
     }
 
-    public void frontToMidShuffle() {
+    public void shuffle() {
+        if (fromFront() != 0) {
+            if (timer.time() < 0.3) {
+                ballMoveFront.setPower(1);
+                ballMoveBack.setPower(1);
+            }
+        } else if (fromBack() != 0) {
+            if (timer.time() < 0.3) {
+                ballMoveFront.setPower(-1);
+                ballMoveBack.setPower(-1);
+            }
+        }
+    }
 
+    public void shuffleOut() {
+        shuffle();
+        if (timer.time() > 0.3 && timer.time() < 0.6) {
+            backIntakeEject();
+            frontIntakeEject();
+        } else if (timer.time() > 0.6 && timer.time() < 0.9) {
+            backIntake();
+            frontIntake();
+        }
     }
 
     public void getRight() {
@@ -167,146 +186,103 @@ public class Intake {
     }
 
     public void stateHandler() {
-        if (!isToggledPattern) {
-            switch (state) {
-                case OFF:
-                    pieceCount = 0;
-                    getRight();
-                    if (pieceCount == 1) {
+        if (state != previousState) {
+            timer.reset();
+            previousState = state;
+            pieceCount = 0;
+        }
+
+        if (state == States.OFF) {
+            getRight();
+            if (pieceCount == 1) {
+                centerHold();
+                botToTop.setPower(1);
+            } else if (pieceCount == 2) {
+                centerHold();
+                botToTop.setPower(0);
+            } else if (pieceCount == 3) {
+                swapIntakeToggle();
+            }
+        }
+        switch (state) {
+            case NOTHING:
+                rightCount = 0;
+                wrongCount = 0;
+                pieceCount = 0;
+                greenCount = 0;
+
+                centerHold();
+                botToTop.setPower(1);
+                getRight();
+                if (rightCount == 1) {
+                    state = States.R;
+                } else if (wrongCount == 1) {
+                    state = States.W;
+                } else {
+                    state = States.NOTHING;
+                }
+                break;
+
+            case R:
+                centerHold();
+                botToTop.setPower(1);
+                getRight();
+                if (rightCount == 2) {
+                    state = States.RR;
+                } else if (wrongCount == 1) {
+                    state = States.RW;
+                } else {
+                    state = States.R;
+                }
+                break;
+
+            case RR:
+                centerHold();
+                botToTop.setPower(0);
+                getRight();
+                if (rightCount == 3) {
+                    state = States.RRR;
+                } else if (wrongCount == 1) {
+                    state = States.RRW;
+                } else {
+                    state = States.RR;
+                }
+                break;
+
+            case RRR:
+                if (timer.time() > 0.3) {
+                    swapIntakeToggle();
+                }
+                centerStop();
+                break;
+
+            case RRW:
+                centerHold();
+                if (greenCount == 2 && Objects.equals(pattern[0], "Green")) {
+                    if (timer.time() < 0.3) {
+                        topToShoot.setPower(1);
+                        shuffle();
+                    } else if (timer.time() > 0.3 && timer.time() < 0.6) {
                         centerHold();
                         botToTop.setPower(1);
-                    } else if (pieceCount == 2) {
-                        centerHold();
+                    } else {
                         botToTop.setPower(0);
-                    } else if (pieceCount == 3) {
-                        timer.reset();
-                        if (timer.time() > 0.3) {
-                            swapIntakeToggle();
-                        }
-                    }
-                    break;
-            }
-        } else if (isToggledPattern) {
-            switch (state) {
-                case NOTHING:
-                    rightCount = 0;
-                    wrongCount = 0;
-                    pieceCount = 0;
-
-                    centerHold();
-                    botToTop.setPower(1);
-                    getRight();
-                    if (rightCount == 1) {
-                        state = States.R;
-                    } else if (wrongCount == 1) {
-                        state = States.W;
-                    } else {
-                        state = States.NOTHING;
-                    }
-                    break;
-
-                case R:
-                    centerHold();
-                    botToTop.setPower(1);
-                    getRight();
-                    if (rightCount == 2) {
-                        state = States.RR;
-                    } else if (wrongCount == 1) {
-                        state = States.RW;
-                    } else {
-                        state = States.R;
-                    }
-                    break;
-
-                case RR:
-                    centerHold();
-                    botToTop.setPower(0);
-                    getRight();
-                    if (rightCount == 3) {
-                        state = States.RRR;
-                    } else if (wrongCount == 1) {
-                        state = States.RRW;
-                    } else {
                         state = States.RR;
                     }
-                    break;
-
-                case RRR:
-                    timer.reset();
-                    if (timer.time() > 0.3) {
-                        swapIntakeToggle();
-                    }
-                    centerStop();
-                    break;
-
-                case RRW:
-                    centerHold();
-                    if (greenCount == 2 && Objects.equals(pattern[0], "Green")) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            topToShoot.setPower(1);
-                        } else {
-                            if (fromFront() != 0) {
-                                timer.reset();
-                                if (timer.time() < 0.3) {
-                                    ballMoveFront.setPower(1);
-                                    ballMoveBack.setPower(1);
-                                } else if (timer.time() > 0.3 && timer.time() < 0.6) {
-                                    centerHold();
-                                    botToTop.setPower(1);
-                                } else {
-                                    centerHold();
-                                    state = States.RR;
-                                }
-                            } else if (fromBack() != 0) {
-                                timer.reset();
-                                if (timer.time() < 0.3) {
-                                    ballMoveFront.setPower(-1);
-                                    ballMoveBack.setPower(-1);
-                                } else if (timer.time() > 0.3 && timer.time() < 0.6) {
-                                    centerHold();
-                                    botToTop.setPower(1);
-                                } else {
-                                    centerHold();
-                                    state = States.RR;
-                                }
-                            }
-                        }
-                    } else if ((greenCount == 2 && Objects.equals(pattern[1], "Green")) || greenCount == 3) {
-                        if (fromFront() != 0) {
-                            timer.reset();
-                            if (timer.time() < 0.3) {
-                                ballMoveFront.setPower(1);
-                                ballMoveBack.setPower(1);
-                                backIntakeEject();
-                            } else {
-                                backIntake();
-                                state = States.RR;
-                            }
-                        } else if (fromBack() != 0) {
-                            timer.reset();
-                            if (timer.time() < 0.3) {
-                                ballMoveFront.setPower(-1);
-                                ballMoveBack.setPower(-1);
-                                frontIntakeEject();
-                            } else {
-                                frontIntake();
-                                state = States.RR;
-                            }
-                        }
-                    }
-                    break;
-                    //remove wrong from same side intaked
+                } else if ((greenCount == 2 && Objects.equals(pattern[1], "Green")) || greenCount == 3) {
+                    shuffleOut();
+                    state = States.RR;
+                }
+                break;
+            //remove wrong from same side intaked
 //                    centerHold();
 //                    if (fromFront() != 0) {
-//                        timer.reset();
 //                        if (timer.time() < 0.3) {
 //                            frontIntakeEject();
 //                        } else {
 //                            state = States.RR;
 //                        }
 //                    } else if (fromBack() != 0) {
-//                        timer.reset();
 //                        if (timer.time() < 0.3) {
 //                            backIntakeEject();
 //                        } else {
@@ -314,135 +290,64 @@ public class Intake {
 //                        }
 //                    }
 //                  break;
-                case RW:
-                    if (greenCount == 2) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            topToShoot.setPower(1);
-                            botToTop.setPower(1);
-                        } else {
-                            topToShoot.setPower(0);
-                            botToTop.setPower(0);
-                            state = States.R;
-                        }
-                    }
-                    getRight();
-                    if (rightCount == 2 && wrongCount == 1) {
-                        state = States.RWR;
-                    } else if (rightCount == 1 && wrongCount == 2) {
-                        state = States.RWW;
-                    } else {
-                        state = States.RW;
-                    }
-                    break;
-
-                case RWR:
-                    if (fromFront() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(1);
-                            ballMoveBack.setPower(1);
-                        } else {
-                            state = States.RRR;
-                        }
-                    } else if (fromBack() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(-1);
-                            ballMoveBack.setPower(-1);
-                        } else {
-                            state = States.RRR;
-                        }
-                    }
-                    break;
-
-                case RWW:
-                    if (fromFront() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(1);
-                            ballMoveBack.setPower(1);
-                            backIntakeEject();
-                        } else {
-                            backIntake();
-                            state = States.RW;
-                        }
-                    } else if (fromBack() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(-1);
-                            ballMoveBack.setPower(-1);
-                            frontIntakeEject();
-                        } else {
-                            frontIntake();
-                            state = States.RW;
-                        }
-                    }
-                    break;
-
-                case W:
-                    centerHold();
+            case RW:
+                if (greenCount == 2 && timer.time() < 0.3) {
+                    topToShoot.setPower(1);
+                    botToTop.setPower(1);
+                } else {
+                    topToShoot.setPower(0);
                     botToTop.setPower(0);
-                    getRight();
-                    if (rightCount == 1) {
-                        state = States.WR;
-                    } else if (wrongCount == 2) {
-                        state = States.WW;
-                    } else {
-                        state = States.W;
-                    }
-                    break;
+                    state = States.R;
+                }
+                getRight();
+                if (rightCount == 2 && wrongCount == 1) {
+                    state = States.RWR;
+                } else if (rightCount == 1 && wrongCount == 2) {
+                    state = States.RWW;
+                } else {
+                    state = States.RW;
+                }
+                break;
 
-                case WR:
-                    if (fromFront() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(1);
-                            ballMoveBack.setPower(1);
-                        } else if (timer.time() < 0.3 && timer.time() > 0.6){
-                            botToTop.setPower(1);
-                            centerHold();
-                        } else {
-                            state = States.RW;
-                        }
-                    } else if (fromBack() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(-1);
-                            ballMoveBack.setPower(-1);
-                        } else if (timer.time() < 0.3 && timer.time() > 0.6){
-                            botToTop.setPower(1);
-                            centerHold();
-                        } else {
-                            state = States.RW;
-                        }
-                    }
-                    break;
+            case RWR:
+                shuffle();
+                state = States.RRR;
+                break;
 
-                case WW:
-                    if (fromFront() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(1);
-                            ballMoveBack.setPower(1);
-                            backIntakeEject();
-                        } else {
-                            backIntake();
-                            state = States.W;
-                        }
-                    } else if (fromBack() != 0) {
-                        timer.reset();
-                        if (timer.time() < 0.3) {
-                            ballMoveFront.setPower(-1);
-                            ballMoveBack.setPower(-1);
-                            frontIntakeEject();
-                        } else {
-                            frontIntake();
-                            state = States.W;
-                        }
-                    }
-                    break;
-            }
+            case RWW:
+                shuffleOut();
+                state = States.RW;
+                break;
+
+            case W:
+                centerHold();
+                botToTop.setPower(0);
+                getRight();
+                if (rightCount == 1) {
+                    state = States.WR;
+                } else if (wrongCount == 2) {
+                    state = States.WW;
+                } else {
+                    state = States.W;
+                }
+                break;
+
+            case WR:
+                shuffle();
+                if (timer.time() > 0.3 && timer.time() < 0.6) {
+                    botToTop.setPower(1);
+                    centerHold();
+                } else {
+                    state = States.RW;
+                }
+                break;
+
+            case WW:
+                shuffleOut();
+                state = States.W;
+                break;
         }
     }
 }
+//change all argb ranges
+//override for less than 3 balls picked up in auto
