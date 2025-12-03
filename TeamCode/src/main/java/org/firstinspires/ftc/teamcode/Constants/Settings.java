@@ -18,47 +18,6 @@ public interface Settings {
     double WIDTH = Units.inchesToMeters(16);
     double LENGTH = Units.inchesToMeters(16);
 
-    public interface Swerve {
-        public interface FrontRight {
-            String DRIVE = "FrontRightDrive";
-            String Turn = "FrontRightTurn";
-            String DRIVE_ENCODER = "FrontRightDriveEncoder";
-            String TURN_ENCODER = "FrontRightTurnEncoder";
-            String ID = "Front Right";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);//204.5);
-            Translation2d MODULE_OFFSET = new Translation2d(WIDTH * +0.5, LENGTH * -0.5);
-        }
-        public interface FrontLeft {
-            String DRIVE = "FrontLeftDrive";
-            String Turn = "FrontLeftTurn";
-            String DRIVE_ENCODER = "FrontLeftDriveEncoder";
-            String TURN_ENCODER = "FrontLeftTurnEncoder";
-            String ID = "Front Left";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);//102.5);
-            Translation2d MODULE_OFFSET = new Translation2d(WIDTH * +0.5, LENGTH * +0.5);
-        }
-        public interface BackRight {
-            String DRIVE = "BackRightDrive";
-            String Turn = "BackRightTurn";
-            String DRIVE_ENCODER = "BackRightDriveEncoder";
-            String TURN_ENCODER = "BackRightTurnEncoder";
-            String ID = "Back Right";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);//214.8);
-            Translation2d MODULE_OFFSET = new Translation2d(WIDTH * -0.5, LENGTH * -0.5);
-        }
-        public interface BackLeft {
-            String DRIVE = "BackLeftDrive";
-            String Turn = "BackLeftTurn";
-            String DRIVE_ENCODER = "BackLeftDriveEncoder";
-            String TURN_ENCODER = "BackLeftTurnEncoder";
-            String ID = "Back Left";
-            Rotation2d ABSOLUTE_OFFSET = Rotation2d.fromDegrees(0);//317.7);
-            Translation2d MODULE_OFFSET = new Translation2d(WIDTH * -0.5, LENGTH * +0.5);
-        }
-        double MODULE_VELOCITY_DEADBAND = 0.05;
-        double MODULE_TURN_DEADBAND = 0;
-    }
-
     public interface VisionConstants {
         public static String[] LIMELIGHT_NAME = new String[] {"limelight1"};
 

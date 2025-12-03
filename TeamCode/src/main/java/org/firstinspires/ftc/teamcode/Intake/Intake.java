@@ -1,10 +1,17 @@
 package org.firstinspires.ftc.teamcode.Intake;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -28,14 +35,20 @@ public class Intake {
     private int pieceCount = 0;
     private int greenCount = 0;
 
-    private States state;
-    private States previousState = States.OFF;
+    public States state;
+    public States previousState = States.OFF;
+    public States stateBeforeShooting = States.OFF;
 
     private ElapsedTime timer = new ElapsedTime();
 
-    private enum States {
+    private Shooter shooter;
+    private ShooterHood shooterHood;
+    private Limelight limelight;
+
+    public enum States {
         OFF,
         NOTHING,
+        SHOOTING,
         R,
         RR,
         RRR,
@@ -48,7 +61,11 @@ public class Intake {
         WW
     }
 
-    public Intake(HardwareMap hardwareMap) {
+    public Intake(HardwareMap hardwareMap, Shooter shooter, ShooterHood shooterHood, Limelight limelight) {
+        this.shooter = shooter;
+        this.shooterHood = shooterHood;
+        this.limelight = limelight;
+
         frontIntakeRight = hardwareMap.get(CRServo.class, "frontIntakeRight");
         frontIntakeLeft = hardwareMap.get(CRServo.class, "frontIntakeLeft");
 
@@ -66,20 +83,71 @@ public class Intake {
         frontSense = hardwareMap.get(ColorSensor.class, "frontSensor");
         backSense = hardwareMap.get(ColorSensor.class, "backSensor");
 
-        String fileName = "patternTagID.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String patternID;
-            while ((patternID = reader.readLine()) != null) {
-                int id = Integer.parseInt(patternID);
-                if (id == 21) {pattern = new String[]{"Green", "Purple", "Purple"}; }
-                if (id == 22) {pattern = new String[]{"Purple", "Green", "Purple"}; }
-                if (id == 23) {pattern = new String[]{"Purple", "Purple", "Green"}; }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading from file: " + e.getMessage()); //stop turret? fix
-        } //volatile global enum for pattern saves between auto and teleOp
+//        String fileName = "patternTagID.txt";
+//        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+//            String patternID;
+//            while ((patternID = reader.readLine()) != null) {
+//                int id = Integer.parseInt(patternID);
+//                if (id == 21) {pattern = new String[]{"Green", "Purple", "Purple"}; }
+//                if (id == 22) {pattern = new String[]{"Purple", "Green", "Purple"}; }
+//                if (id == 23) {pattern = new String[]{"Purple", "Purple", "Green"}; }
+//            }
+//        } catch (IOException e) {
+//            System.err.println("Error reading from file: " + e.getMessage()); //stop turret? fix
+//        } //volatile global enum for pattern saves between auto and teleOp
 
         state = States.OFF;
+
+        loadPatternFromPreferences(hardwareMap);
+    }
+
+    private void loadPatternFromPreferences(HardwareMap hardwareMap) {
+        Context context = hardwareMap.appContext;
+        SharedPreferences prefs = context.getSharedPreferences("RobotPrefs", Context.MODE_PRIVATE);
+
+        int tagID = prefs.getInt("patternTagID", -1); // -1 means no tag stored
+
+        switch (tagID) {
+            case 21 -> pattern = new String[]{"Green", "Purple", "Purple"};
+            case 22 -> pattern = new String[]{"Purple", "Green", "Purple"};
+            case 23 -> pattern = new String[]{"Purple", "Purple", "Green"};
+            default -> {
+                pattern = new String[]{"Green", "Purple", "Purple"}; // safe default
+                System.err.println("No valid tag stored; using default pattern");
+            }
+        }
+    }
+
+    /*** Save the first valid tag (21, 22, 23) seen in Auto ***/
+    public static void saveTagID(HardwareMap hardwareMap, int tagID) {
+        // Only accept valid tags
+        if (tagID != 21 && tagID != 22 && tagID != 23) {
+            return; // ignore invalid tags
+        }
+
+        Context context = hardwareMap.appContext;
+        SharedPreferences prefs = context.getSharedPreferences("RobotPrefs", Context.MODE_PRIVATE);
+
+        // Only store if no tag has been stored yet
+        if (!prefs.contains("patternTagID")) {
+            prefs.edit().putInt("patternTagID", tagID).apply();
+        }
+    }
+
+    public static void resetTagID(HardwareMap hardwareMap) {
+        Context context = hardwareMap.appContext;
+        SharedPreferences prefs = context.getSharedPreferences("RobotPrefs", Context.MODE_PRIVATE);
+        prefs.edit().remove("patternTagID").apply(); // remove any stored tag
+    }
+
+    public void intaking() {
+        if (isToggledIntake) {
+            frontIntake();
+            backIntake();
+        } else {
+            frontIntakeStop();
+            backIntakeStop();
+        }
     }
 
     public void frontIntake() {
@@ -190,6 +258,9 @@ public class Intake {
             timer.reset();
             previousState = state;
             pieceCount = 0;
+
+            isToggledIntake = true;
+            intaking();
         }
 
         if (state == States.OFF) {
@@ -204,6 +275,19 @@ public class Intake {
                 swapIntakeToggle();
             }
         }
+
+        if (state == States.SHOOTING) {
+            //if shooter is at speed and hood is at angle
+            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
+                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
+                isToggledIntake = true;
+                intaking();
+                centerHold();
+                botToTop.setPower(1);
+                topToShoot.setPower(1);
+            }
+        }
+
         switch (state) {
             case NOTHING:
                 rightCount = 0;
@@ -254,6 +338,7 @@ public class Intake {
                     swapIntakeToggle();
                 }
                 centerStop();
+                botToTop.setPower(0);
                 break;
 
             case RRW:
