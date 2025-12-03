@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.Shooter;
-//
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Util.LinearRegression;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -65,6 +65,9 @@ public class Shooter {
 
     private double ticksPerRev;
 
+    private double[] settingsDistance;
+    private double[] settingsShooterSpeeds;
+
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
@@ -74,17 +77,25 @@ public class Shooter {
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterLeft .setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        shooterRight.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
+        shooterLeft.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
+
         ticksPerRev = shooterRight.getMotorType().getTicksPerRev();
+
+        settingsDistance = Settings.Shooter.distances;
+        settingsShooterSpeeds = Settings.Shooter.shooterSpeeds;
+
+        rpmRegression();
     }
 
-    public void rpmRegression(double[] distances, double[] shooterSpeeds) {
-        if (distances.length != shooterSpeeds.length) {
+    public void rpmRegression() {
+        if (settingsDistance.length != settingsShooterSpeeds.length) {
             throw new IllegalArgumentException("Shooter array != distance array");
         }
 
-        Translation2d[] points = new Translation2d[distances.length];
-        for (int i = 0; i < distances.length; i++) {
-            points[i] = new Translation2d(distances[i], shooterSpeeds[i]);
+        Translation2d[] points = new Translation2d[settingsDistance.length];
+        for (int i = 0; i < settingsDistance.length; i++) {
+            points[i] = new Translation2d(settingsDistance[i], settingsShooterSpeeds[i]);
         }
 
         rpm = new LinearRegression(points);
@@ -108,7 +119,7 @@ public class Shooter {
     }
 
     public void stop() {
-        shooterRight.setPower(0);
-        shooterLeft.setPower(0);
+        shooterRight.setVelocity(0);
+        shooterLeft.setVelocity(0);
     }
 }

@@ -9,13 +9,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Objects;
 
 public class Intake {
@@ -44,6 +42,10 @@ public class Intake {
     private Shooter shooter;
     private ShooterHood shooterHood;
     private Limelight limelight;
+    
+    private double firstShuffle;
+    private double secondShuffle;
+    private double thirdShuffle;
 
     public enum States {
         OFF,
@@ -82,6 +84,10 @@ public class Intake {
 
         frontSense = hardwareMap.get(ColorSensor.class, "frontSensor");
         backSense = hardwareMap.get(ColorSensor.class, "backSensor");
+        
+        firstShuffle = Settings.Intake.shuffleOne;
+        secondShuffle = Settings.Intake.shuffleTwo;
+        thirdShuffle = Settings.Intake.shuffleThree;
 
 //        String fileName = "patternTagID.txt";
 //        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
@@ -196,6 +202,29 @@ public class Intake {
 
     public void swapPatternToggle() {
         isToggledPattern = !isToggledPattern;
+
+        rightCount = 0;
+        wrongCount = 0;
+        pieceCount = 0;
+        greenCount = 0;
+
+        if (!isToggledPattern) {
+            state = States.OFF;
+        }
+
+        else {
+            state = States.NOTHING;
+        }
+
+        previousState = state;
+
+        centerStop();
+        frontIntakeStop();
+        backIntakeStop();
+        botToTop.setPower(0);
+        topToShoot.setPower(0);
+
+        timer.reset();
     }
 
     public int getFrontColor() {
@@ -216,12 +245,12 @@ public class Intake {
 
     public void shuffle() {
         if (fromFront() != 0) {
-            if (timer.time() < 0.3) {
+            if (timer.time() < firstShuffle) {
                 ballMoveFront.setPower(1);
                 ballMoveBack.setPower(1);
             }
         } else if (fromBack() != 0) {
-            if (timer.time() < 0.3) {
+            if (timer.time() < firstShuffle) {
                 ballMoveFront.setPower(-1);
                 ballMoveBack.setPower(-1);
             }
@@ -230,10 +259,10 @@ public class Intake {
 
     public void shuffleOut() {
         shuffle();
-        if (timer.time() > 0.3 && timer.time() < 0.6) {
+        if (timer.time() > firstShuffle && timer.time() < secondShuffle) {
             backIntakeEject();
             frontIntakeEject();
-        } else if (timer.time() > 0.6 && timer.time() < 0.9) {
+        } else if (timer.time() > secondShuffle && timer.time() < thirdShuffle) {
             backIntake();
             frontIntake();
         }
@@ -254,6 +283,14 @@ public class Intake {
     }
 
     public void stateHandler() {
+        if (isToggledIntake) {
+            frontIntake();
+            backIntake();
+        } else if (!isToggledIntake) {
+            frontIntakeStop();
+            backIntakeStop();
+        }
+
         if (state != previousState) {
             timer.reset();
             previousState = state;
@@ -261,19 +298,6 @@ public class Intake {
 
             isToggledIntake = true;
             intaking();
-        }
-
-        if (state == States.OFF) {
-            getRight();
-            if (pieceCount == 1) {
-                centerHold();
-                botToTop.setPower(1);
-            } else if (pieceCount == 2) {
-                centerHold();
-                botToTop.setPower(0);
-            } else if (pieceCount == 3) {
-                swapIntakeToggle();
-            }
         }
 
         if (state == States.SHOOTING) {
@@ -288,149 +312,167 @@ public class Intake {
             }
         }
 
-        switch (state) {
-            case NOTHING:
-                rightCount = 0;
-                wrongCount = 0;
-                pieceCount = 0;
-                greenCount = 0;
+        if (!isToggledPattern) {
+            state = States.OFF;
 
-                centerHold();
-                botToTop.setPower(1);
+            if (state == States.OFF) {
                 getRight();
-                if (rightCount == 1) {
-                    state = States.R;
-                } else if (wrongCount == 1) {
-                    state = States.W;
-                } else {
-                    state = States.NOTHING;
-                }
-                break;
-
-            case R:
-                centerHold();
-                botToTop.setPower(1);
-                getRight();
-                if (rightCount == 2) {
-                    state = States.RR;
-                } else if (wrongCount == 1) {
-                    state = States.RW;
-                } else {
-                    state = States.R;
-                }
-                break;
-
-            case RR:
-                centerHold();
-                botToTop.setPower(0);
-                getRight();
-                if (rightCount == 3) {
-                    state = States.RRR;
-                } else if (wrongCount == 1) {
-                    state = States.RRW;
-                } else {
-                    state = States.RR;
-                }
-                break;
-
-            case RRR:
-                if (timer.time() > 0.3) {
+                if (pieceCount == 1) {
+                    centerHold();
+                    botToTop.setPower(1);
+                } else if (pieceCount == 2) {
+                    centerHold();
+                    botToTop.setPower(0);
+                } else if (pieceCount == 3) {
                     swapIntakeToggle();
                 }
-                centerStop();
-                botToTop.setPower(0);
-                break;
+            }
+        } else if (isToggledPattern) {
 
-            case RRW:
-                centerHold();
-                if (greenCount == 2 && Objects.equals(pattern[0], "Green")) {
-                    if (timer.time() < 0.3) {
-                        topToShoot.setPower(1);
-                        shuffle();
-                    } else if (timer.time() > 0.3 && timer.time() < 0.6) {
-                        centerHold();
-                        botToTop.setPower(1);
+            switch (state) {
+                case NOTHING:
+                    rightCount = 0;
+                    wrongCount = 0;
+                    pieceCount = 0;
+                    greenCount = 0;
+
+                    centerHold();
+                    botToTop.setPower(1);
+                    getRight();
+                    if (rightCount == 1) {
+                        state = States.R;
+                    } else if (wrongCount == 1) {
+                        state = States.W;
                     } else {
-                        botToTop.setPower(0);
+                        state = States.NOTHING;
+                    }
+                    break;
+
+                case R:
+                    centerHold();
+                    botToTop.setPower(1);
+                    getRight();
+                    if (rightCount == 2) {
+                        state = States.RR;
+                    } else if (wrongCount == 1) {
+                        state = States.RW;
+                    } else {
+                        state = States.R;
+                    }
+                    break;
+
+                case RR:
+                    centerHold();
+                    botToTop.setPower(0);
+                    getRight();
+                    if (rightCount == 3) {
+                        state = States.RRR;
+                    } else if (wrongCount == 1) {
+                        state = States.RRW;
+                    } else {
                         state = States.RR;
                     }
-                } else if ((greenCount == 2 && Objects.equals(pattern[1], "Green")) || greenCount == 3) {
-                    shuffleOut();
-                    state = States.RR;
-                }
-                break;
-            //remove wrong from same side intaked
+                    break;
+
+                case RRR:
+                    if (timer.time() > firstShuffle) {
+                        swapIntakeToggle();
+                    }
+                    centerStop();
+                    botToTop.setPower(0);
+                    break;
+
+                case RRW:
+                    centerHold();
+                    if (greenCount == 2 && Objects.equals(pattern[0], "Green")) {
+                        if (timer.time() < firstShuffle) {
+                            topToShoot.setPower(1);
+                            shuffle();
+                        } else if (timer.time() > firstShuffle && timer.time() < secondShuffle) {
+                            centerHold();
+                            botToTop.setPower(1);
+                        } else {
+                            botToTop.setPower(0);
+                            state = States.RR;
+                        }
+                    } else if ((greenCount == 2 && Objects.equals(pattern[1], "Green")) || greenCount == 3) {
+                        shuffleOut();
+                        state = States.RR;
+                    }
+                    break;
+                //remove wrong from same side intaked
 //                    centerHold();
 //                    if (fromFront() != 0) {
-//                        if (timer.time() < 0.3) {
+//                        if (timer.time() < firstShuffle) {
 //                            frontIntakeEject();
 //                        } else {
 //                            state = States.RR;
 //                        }
 //                    } else if (fromBack() != 0) {
-//                        if (timer.time() < 0.3) {
+//                        if (timer.time() < firstShuffle) {
 //                            backIntakeEject();
 //                        } else {
 //                            state = States.RR;
 //                        }
 //                    }
 //                  break;
-            case RW:
-                if (greenCount == 2 && timer.time() < 0.3) {
-                    topToShoot.setPower(1);
-                    botToTop.setPower(1);
-                } else {
-                    topToShoot.setPower(0);
-                    botToTop.setPower(0);
-                    state = States.R;
-                }
-                getRight();
-                if (rightCount == 2 && wrongCount == 1) {
-                    state = States.RWR;
-                } else if (rightCount == 1 && wrongCount == 2) {
-                    state = States.RWW;
-                } else {
+                case RW:
+                    if (greenCount == 2 && timer.time() < firstShuffle) {
+                        topToShoot.setPower(1);
+                        botToTop.setPower(1);
+                    } else {
+                        topToShoot.setPower(0);
+                        botToTop.setPower(0);
+                        state = States.R;
+                    }
+                    getRight();
+                    if (rightCount == 2 && wrongCount == 1) {
+                        state = States.RWR;
+                    } else if (rightCount == 1 && wrongCount == 2) {
+                        state = States.RWW;
+                    } else {
+                        state = States.RW;
+                    }
+                    break;
+
+                case RWR:
+                    shuffle();
+                    state = States.RRR;
+                    break;
+
+                case RWW:
+                    shuffleOut();
                     state = States.RW;
-                }
-                break;
+                    break;
 
-            case RWR:
-                shuffle();
-                state = States.RRR;
-                break;
-
-            case RWW:
-                shuffleOut();
-                state = States.RW;
-                break;
-
-            case W:
-                centerHold();
-                botToTop.setPower(0);
-                getRight();
-                if (rightCount == 1) {
-                    state = States.WR;
-                } else if (wrongCount == 2) {
-                    state = States.WW;
-                } else {
-                    state = States.W;
-                }
-                break;
-
-            case WR:
-                shuffle();
-                if (timer.time() > 0.3 && timer.time() < 0.6) {
-                    botToTop.setPower(1);
+                case W:
                     centerHold();
-                } else {
-                    state = States.RW;
-                }
-                break;
+                    botToTop.setPower(0);
+                    getRight();
+                    if (rightCount == 1) {
+                        state = States.WR;
+                    } else if (wrongCount == 2) {
+                        state = States.WW;
+                    } else {
+                        state = States.W;
+                    }
+                    break;
 
-            case WW:
-                shuffleOut();
-                state = States.W;
-                break;
+                case WR:
+                    shuffle();
+                    if (timer.time() > firstShuffle && timer.time() < secondShuffle) {
+                        botToTop.setPower(1);
+                        centerHold();
+                    } else {
+                        state = States.RW;
+                    }
+                    break;
+
+                case WW:
+                    shuffleOut();
+                    state = States.W;
+                    break;
+            }
         }
     }
 }
