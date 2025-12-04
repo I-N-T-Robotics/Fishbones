@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import java.util.Arrays;
 import java.util.List;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOp extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TmanzOp", group = "teleOp")
+public class TmanzOp extends LinearOpMode {
 
     private DcMotorEx fl, fr, bl, br;
 
@@ -62,6 +62,8 @@ public class TeleOp extends LinearOpMode {
 
         waitForStart();
 
+        //intake.stateHandler();
+
         while (opModeIsActive()) {
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x;// * 1.1;
@@ -85,8 +87,9 @@ public class TeleOp extends LinearOpMode {
             if (shootingPressed && !shootingButtonPrev) {
                 intake.stateBeforeShooting = intake.state;
                 intake.state = Intake.States.SHOOTING;
-                shooter.setShooterSpeed(limelight.getDistance());
-                shooterHood.setHoodPosition(limelight.getDistance());
+//                shooter.setShooterSpeed(limelight.getDistance());
+//                shooterHood.setHoodPosition(limelight.getDistance());
+                shooter.setShooterSpeed(1);
             }
 
             if (!shootingPressed && shootingButtonPrev) {
@@ -100,6 +103,11 @@ public class TeleOp extends LinearOpMode {
             shootingButtonPrev = shootingPressed;
             intake.stateHandler();
         }
+
+        telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
+        telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
+        telemetry.addData("distance", limelight.getDistance());
+        telemetry.update();
     }
 
     public void drive(double y, double x, double rx) {

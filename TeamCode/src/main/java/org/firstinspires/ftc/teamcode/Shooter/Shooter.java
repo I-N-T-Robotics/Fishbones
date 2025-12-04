@@ -114,6 +114,12 @@ public class Shooter {
         shooterLeft.setVelocity(ticksPerSec);
     }
 
+    public void setShooterSpeed(int x) {
+        double ticksPerSec = (x / 60.0) * ticksPerRev;
+        shooterRight.setVelocity(ticksPerSec);
+        shooterLeft.setVelocity(ticksPerSec);
+    }
+
     public double getShooterCurrentRPM() {
         return shooterRight.getVelocity() * 60.0 / ticksPerRev;
     }
