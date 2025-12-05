@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import java.util.Arrays;
 import java.util.List;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TmanzOp", group = "teleOp")
-public class TmanzOp extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TestOp", group = "teleOp")
+public class TestOp extends LinearOpMode {
 
     private DcMotorEx fl, fr, bl, br;
 
@@ -74,34 +74,25 @@ public class TmanzOp extends LinearOpMode {
                 gyro.zeroYaw();
             }
 
-//            if (gamepad1.y) {
-//                intake.swapPatternToggle();
-//            }
-
-            if (gamepad1.b) {
-                intake.swapIntakeToggle();
-            }
-
-            boolean shootingPressed = gamepad1.a;
-
-            if (shootingPressed && !shootingButtonPrev) {
-                intake.stateBeforeShooting = intake.state;
-                intake.state = Intake.States.SHOOTING;
-//                shooter.setShooterSpeed(limelight.getDistance());
-//                shooterHood.setHoodPosition(limelight.getDistance());
+            if (gamepad1.y) {
+                intake.centerHold();
+                intake.frontIntake();
+                intake.startBotToTop();
+                intake.startTopToShoot();
                 shooter.setShooterSpeed(1);
             }
 
-            if (!shootingPressed && shootingButtonPrev) {
-                if (intake.stateBeforeShooting == Intake.States.OFF) {
-                    intake.state = Intake.States.OFF;
-                } else {
-                    intake.state = Intake.States.NOTHING;
-                }
-                shooter.setShooterSpeed(0);
+            if (gamepad1.a) {
+                intake.startBotToTop();
+                intake.centerHold();
+                intake.frontIntake();
             }
-            shootingButtonPrev = shootingPressed;
-            intake.stateHandler();
+
+            if (gamepad1.b) {
+                intake.centerHold();
+                intake.frontIntake();
+            }
+
         }
 
         telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());

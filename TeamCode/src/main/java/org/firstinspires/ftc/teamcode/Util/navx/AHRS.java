@@ -4,6 +4,7 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.hardware.TimestampedData;
 
@@ -99,7 +100,8 @@ public class AHRS {
     private static boolean enable_logging = false;
     private static final int NAVX_DEFAULT_UPDATE_RATE_HZ = 50;
 
-    private NavxMicroNavigationSensor sensor = null;
+//    private NavxMicroNavigationSensor sensor = null;
+    private GoBildaPinpointDriver sensor = null;
     private navXIOThread io_thread_obj;
     private Thread io_thread;
     private int update_rate_hz = NAVX_DEFAULT_UPDATE_RATE_HZ;
@@ -111,7 +113,7 @@ public class AHRS {
     AHRSProtocol.BoardID board_id;
     IMUProtocol.GyroUpdate raw_data_update;
 
-    protected AHRS(NavxMicroNavigationSensor sensor,
+    protected AHRS(GoBildaPinpointDriver sensor,
                    DeviceDataType data_type, int update_rate_hz) {
         this.callbacks = new IDataArrivalSubscriber[MAX_NUM_CALLBACKS];
         this.sensor = sensor;
@@ -127,6 +129,23 @@ public class AHRS {
 
         io_thread.start();
     }
+
+//    protected AHRS(NavxMicroNavigationSensor sensor,
+//                   DeviceDataType data_type, int update_rate_hz) {
+//        this.callbacks = new IDataArrivalSubscriber[MAX_NUM_CALLBACKS];
+//        this.sensor = sensor;
+//        this.update_rate_hz = update_rate_hz;
+//        this.curr_data = new AHRSProtocol.AHRSPosUpdate();
+//        this.board_state = new BoardState();
+//        this.board_id = new AHRSProtocol.BoardID();
+//        this.raw_data_update = new IMUProtocol.GyroUpdate();
+//
+//        io_thread_obj   = new navXIOThread(update_rate_hz, data_type, curr_data);
+//        io_thread_obj.start();
+//        io_thread       = new Thread(io_thread_obj);
+//
+//        io_thread.start();
+//    }
 
     /**
      * Registers a callback interface.  This interface
@@ -190,7 +209,7 @@ public class AHRS {
      * If the singleton already exists, the parameters passed in will be ignored.
      * @return The singleton AHRS class instance.
      */
-    public static AHRS getInstance(NavxMicroNavigationSensor sensor,
+    public static AHRS getInstance(GoBildaPinpointDriver sensor,
                                    DeviceDataType data_type) {
         if (instance == null) {
             instance = new AHRS(sensor, data_type, NAVX_DEFAULT_UPDATE_RATE_HZ);
@@ -232,7 +251,7 @@ public class AHRS {
      *
      * @return The singleton AHRS class instance.
      */
-    public static AHRS getInstance(NavxMicroNavigationSensor sensor,
+    public static AHRS getInstance(GoBildaPinpointDriver sensor,
                                    DeviceDataType data_type, byte update_rate_hz) {
         if (instance == null) {
             instance = new AHRS(sensor, data_type, update_rate_hz);
@@ -989,8 +1008,8 @@ public class AHRS {
             zero_yaw_command[0]         = AHRSProtocol.NAVX_INTEGRATION_CTL_RESET_YAW;
 
             if ( enable_logging ) {
-                Log.i("navx_ftc", "Beginning communication with navX-Model sensor " + sensor.getDeviceName() + " at I2C address " + sensor.getI2cAddress());
-                Log.i("navx_ftc", "Firmware version:  " + sensor.getFirmwareVersion());
+//                Log.i("navx_ftc", "Beginning communication with navX-Model sensor " + sensor.getDeviceName() + " at I2C address " + sensor.getI2cAddress());
+//                Log.i("navx_ftc", "Firmware version:  " + sensor.getFirmwareVersion());
             }
 
             setConnected(false);
@@ -1010,7 +1029,7 @@ public class AHRS {
                         this.update_count = 0;
                         this.hertz_counter = 0;
                         this.duplicate_sensor_data_count = 0;
-                        TimestampedData board_data = sensor.readTimeStamped(NavxMicroNavigationSensor.Register.WHOAMI, DIM_MAX_I2C_READ_LEN);
+                        TimestampedData board_data = sensor.getDeviceClient().readTimeStamped(DIM_MAX_I2C_READ_LEN);
                         if ((board_data != null) && (board_data.data != null)) {
                             if (decodeNavxBoardData(board_data.data, NAVX_REGISTER_FIRST, board_data.data.length)) {
                                 setConnected(true);
@@ -1018,10 +1037,10 @@ public class AHRS {
                                 /* To handle the case where the device is reset, reconfigure the */
                                 /* update rate whenever reconecting to the device.               */
                                 // TODO:  How do we detect a timeout here?
-                                sensor.write8(NavxMicroNavigationSensor.Register.UPDATE_RATE_HZ, update_rate_command[0]);
+                                //sensor.write8(NavxMicroNavigationSensor.Register.UPDATE_RATE_HZ, update_rate_command[0]);
 
                                 /* Re-read the board data after the update rate is modified. */
-                                board_data = sensor.readTimeStamped(NavxMicroNavigationSensor.Register.WHOAMI, DIM_MAX_I2C_READ_LEN);
+                                board_data = sensor.getDeviceClient().readTimeStamped(DIM_MAX_I2C_READ_LEN);
                                 if ((board_data == null) || (board_data.data == null) ||
                                         !decodeNavxBoardData(board_data.data, NAVX_REGISTER_FIRST, board_data.data.length)) {
                                     setConnected(false);
@@ -1033,7 +1052,8 @@ public class AHRS {
                         synchronized(reset_yaw_critical_section) {
                             if (request_zero_yaw) {
 
-                                sensor.write8(NavxMicroNavigationSensor.Register.INTEGRATION_CTL, zero_yaw_command[0]);
+//                                sensor.write8(NavxMicroNavigationSensor.Register.INTEGRATION_CTL, zero_yaw_command[0]);
+                                sensor.resetPosAndIMU();
                                 /* After zeroing the yaw, wait one sample time to ensure that */
                                 /* a new yaw value (which has been "zeroed") is ready to read. */
                                 // TODO:  How do we detect a timeout here?
@@ -1046,7 +1066,7 @@ public class AHRS {
 
                         if ((data_type == DeviceDataType.kProcessedData) ||
                                 (data_type == DeviceDataType.kAll)) {
-                            TimestampedData processed_data = sensor.readTimeStamped(NavxMicroNavigationSensor.Register.SENSOR_STATUS_L, DIM_MAX_I2C_READ_LEN);
+                            TimestampedData processed_data = sensor.getDeviceClient().readTimeStamped(DIM_MAX_I2C_READ_LEN);
                             if (( processed_data != null) && (processed_data.data != null)) {
                                 // TODO:  Verify that the following function will fail if
                                 // device is disconnected.  It is assumed that in this case,
@@ -1089,7 +1109,7 @@ public class AHRS {
 
                         if ((data_type == DeviceDataType.kQuatAndRawData) ||
                                 (data_type == DeviceDataType.kAll)) {
-                            TimestampedData raw_data = sensor.readTimeStamped(NavxMicroNavigationSensor.Register.QUAT_W_L, DIM_MAX_I2C_READ_LEN);
+                            TimestampedData raw_data = sensor.getDeviceClient().readTimeStamped(DIM_MAX_I2C_READ_LEN);
 
                             if ( (raw_data != null) && (raw_data.data != null)) {
                                 // TODO:  Verify that the following function will fail if

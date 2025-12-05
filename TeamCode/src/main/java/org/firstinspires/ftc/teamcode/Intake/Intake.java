@@ -146,6 +146,14 @@ public class Intake {
         prefs.edit().remove("patternTagID").apply(); // remove any stored tag
     }
 
+    public void startBotToTop() {
+        botToTop.setPower(1);
+    }
+
+    public void startTopToShoot() {
+        topToShoot.setPower(1);
+    }
+
     public void intaking() {
         if (isToggledIntake) {
             frontIntake();

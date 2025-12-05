@@ -49,6 +49,7 @@ public class finalBlueAuto extends OpMode {
     private final Pose intake2Assist1 = new Pose(63.096774193548384, 64.45161290322581);
     private final Pose intake2Assist2 = new Pose(26.516129032258064, 44.32258064516128);
     private final Pose shoot2 = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
+    private final Pose shoot2Assist = new Pose(38.32258064516129, 52.25806451612903);
     private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, Math.toRadians(180));
     private final Pose intake3Assist = new Pose(45.29032258064516, 36.38709677419355);
     private final Pose shoot3 = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
@@ -86,7 +87,7 @@ public class finalBlueAuto extends OpMode {
                 .setLinearHeadingInterpolation(shoot1.getHeading(), intake2.getHeading())
                 .build();
         intake2ToShoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(intake2, shoot2))
+                .addPath(new BezierCurve(intake2, shoot2Assist, shoot2))
                 .setLinearHeadingInterpolation(intake2.getHeading(), shoot2.getHeading())
                 .build();
         shoot2ToIntake3 = follower.pathBuilder()
