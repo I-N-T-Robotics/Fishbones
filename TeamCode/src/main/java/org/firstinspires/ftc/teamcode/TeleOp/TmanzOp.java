@@ -69,6 +69,10 @@ public class TmanzOp extends LinearOpMode {
 //                intake.swapPatternToggle();
 //            }
 
+            if (gamepad1.y) {
+                intake.startTopToShoot();
+            }
+
             if (gamepad1.b) {
                 intake.swapIntakeToggle();
             }

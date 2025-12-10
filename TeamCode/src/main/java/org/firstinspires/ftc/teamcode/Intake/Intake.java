@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -326,7 +325,7 @@ public class Intake {
             //}
 //        }
 
-        if (!isToggledPattern) {
+        if (!isToggledPattern && state != States.SHOOTING) {
             state = States.OFF;
 
             if (state == States.OFF) {
@@ -351,7 +350,7 @@ public class Intake {
                 case SHOOTING:
     //            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
     //                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
-                        isToggledIntake = false;
+                        isToggledIntake = true;
                         intaking();
                         centerHold();
                         botToTop.setPower(1);
