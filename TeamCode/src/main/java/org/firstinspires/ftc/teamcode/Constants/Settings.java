@@ -16,7 +16,7 @@ public interface Settings {
         double[] shooterSpeeds = {0, 0, 0};
 
 //        double kP = 0.00005;
-        double kP = 15;
+        double kP = 90;
         double kI = 0.0;
         double kD = 0.00005;
         double kF = 0.000012;

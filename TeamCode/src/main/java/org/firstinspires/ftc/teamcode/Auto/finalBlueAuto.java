@@ -40,8 +40,9 @@ public class finalBlueAuto extends OpMode {
 
     PathState pathState;
 
-    private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(135));
-    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, Math.toRadians(135));
+    private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(-36));
+    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, Math.toRadians(143));
+    private final Pose shootPreloadAssist = new Pose(76.64516129032258, 89.2258064516129);
     private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, Math.toRadians(180));
     private final Pose intake1Assist = new Pose(49.5483870967742, 72.19354838709677);
     private final Pose shoot1 = new Pose(51.67741935483871, 82.06451612903226, Math.toRadians(128));
@@ -71,7 +72,7 @@ public class finalBlueAuto extends OpMode {
 
     public void buildPaths() {
         startToShootPreload = follower.pathBuilder()
-                .addPath(new BezierLine(start, shootPreload))
+                .addPath(new BezierCurve(start, shootPreloadAssist, shootPreload))
                 .setLinearHeadingInterpolation(start.getHeading(), shootPreload.getHeading())
                 .build();
         shootPreloadToIntake1 = follower.pathBuilder()

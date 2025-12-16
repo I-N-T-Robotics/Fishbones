@@ -58,6 +58,7 @@ public class TmanzOp extends LinearOpMode {
         waitForStart();
 
         intake.stateHandler();
+        shooter.idle();
 
         while (opModeIsActive()) {
             double y = -gamepad1.left_stick_y;
@@ -84,7 +85,7 @@ public class TmanzOp extends LinearOpMode {
                 intake.state = Intake.States.SHOOTING;
 //                shooter.setShooterSpeed(limelight.getDistance());
 //                shooterHood.setHoodPosition(limelight.getDistance());
-                shooter.runShooter();
+//                shooter.runShooter();
             }
 
             if ((intake.state == Intake.States.SHOOTING) && !shootingPressed) {

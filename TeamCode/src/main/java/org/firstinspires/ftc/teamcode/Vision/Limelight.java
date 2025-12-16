@@ -32,9 +32,6 @@ public class Limelight {
     }
 
     public double getDistance() {
-        if (!Double.isFinite(dist) || dist <= 0) {
-            dist = 24;
-        }
         return dist;
     }
 

@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Util.Normalize;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 import java.util.Objects;
@@ -47,6 +48,9 @@ public class Intake {
     private double firstShuffle;
     private double secondShuffle;
     private double thirdShuffle;
+
+    private Normalize normalizeFront;
+    private Normalize normalizeBack;
 
     public enum States {
         OFF,
@@ -86,6 +90,8 @@ public class Intake {
         botToTop.setDirection(DcMotorSimple.Direction.REVERSE);
         ballMoveBack.setDirection(DcMotorSimple.Direction.REVERSE);
         topToShoot.setDirection(DcMotorSimple.Direction.REVERSE);
+        backIntakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backIntakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontSense = hardwareMap.get(ColorSensor.class, "frontSensor");
         backSense = hardwareMap.get(ColorSensor.class, "backSensor");
@@ -94,18 +100,8 @@ public class Intake {
         secondShuffle = Settings.Intake.shuffleTwo;
         thirdShuffle = Settings.Intake.shuffleThree;
 
-//        String fileName = "patternTagID.txt";
-//        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-//            String patternID;
-//            while ((patternID = reader.readLine()) != null) {
-//                int id = Integer.parseInt(patternID);
-//                if (id == 21) {pattern = new String[]{"Green", "Purple", "Purple"}; }
-//                if (id == 22) {pattern = new String[]{"Purple", "Green", "Purple"}; }
-//                if (id == 23) {pattern = new String[]{"Purple", "Purple", "Green"}; }
-//            }
-//        } catch (IOException e) {
-//            System.err.println("Error reading from file: " + e.getMessage()); //stop turret? fix
-//        } //volatile global enum for pattern saves between auto and teleOp
+        this.normalizeFront = new Normalize(frontSense.red(), frontSense.green(), frontSense.blue());
+        this.normalizeBack = new Normalize(backSense.red(), backSense.green(), backSense.blue());
 
         state = States.OFF;
 
@@ -240,29 +236,13 @@ public class Intake {
         timer.reset();
     }
 
-    public int getFrontColor() {
-        return frontSense.green();
-    }
-
-    public int fromFront() {
-        return frontSense.argb();
-    }
-
-    public int getBackColor() {
-        return backSense.green();
-    }
-
-    public int fromBack() {
-        return backSense.argb();
-    }
-
     public void shuffle() {
-        if (fromFront() != 0) {
+        if (frontSense.alpha() != 0) {
             if (timer.time() < firstShuffle) {
                 ballMoveFront.setPower(1);
                 ballMoveBack.setPower(1);
             }
-        } else if (fromBack() != 0) {
+        } else if (backSense.alpha() != 0) {
             if (timer.time() < firstShuffle) {
                 ballMoveFront.setPower(-1);
                 ballMoveBack.setPower(-1);
@@ -282,20 +262,42 @@ public class Intake {
     }
 
     public void getRight() {
-//        if ((getFrontColor() > 200 || getBackColor() > 200) && Objects.equals(pattern[rightCount], "Green")) {
-//            rightCount++;
-//            pieceCount++;
-//            greenCount++;
-//        } else if ((getFrontColor() < 50 || getBackColor() < 50) && Objects.equals(pattern[rightCount], "Purple")) {
-//            rightCount++;
-//            pieceCount++;
-//        } else {
-//            wrongCount++;
-//            pieceCount++;
-//        }
+        if (frontSense.alpha() > 0 || backSense.alpha() > 0) {
+            if ((normalizeFront.rV2() > 200 || normalizeBack.rV2() > 200) && Objects.equals(pattern[rightCount], "Green")) {
+                rightCount++;
+                pieceCount++;
+                greenCount++;
+            } else if ((normalizeFront.rV2() < 50 || normalizeBack.rV2() < 50) && Objects.equals(pattern[rightCount], "Purple")) {
+                rightCount++;
+                pieceCount++;
+            }
+        }
     }
 
     public void stateHandler() {
+        if (state == States.SHOOTING) {
+            shooter.runShooter();
+//            if shooter is at speed and hood is at angle
+//            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
+//                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
+            if ((shooter.getShooterCurrentRPM() > 100)) {
+                isToggledIntake = true;
+                intaking();
+                centerHold();
+                botToTop.setPower(1);
+                topToShoot.setPower(1);
+            } else {
+                isToggledIntake = false;
+                frontIntakeStop();
+                backIntakeStop();
+                centerStop();
+                botToTop.setPower(0);
+                topToShoot.setPower(0);
+            }
+            return;
+        }
+//        }
+
         if (isToggledIntake) {
             frontIntake();
             backIntake();
@@ -313,22 +315,12 @@ public class Intake {
             intaking();
         }
 
-//        if (state == States.SHOOTING) {
-            //if shooter is at speed and hood is at angle
-//            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
-//                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
-//                isToggledIntake = false;
-//                intaking();
-//                centerHold();
-//                botToTop.setPower(1);
-//                topToShoot.setPower(1);
-            //}
-//        }
-
         if (!isToggledPattern && state != States.SHOOTING) {
             state = States.OFF;
+            shooter.idle();
 
             if (state == States.OFF) {
+                topToShoot.setPower(0);
                 getRight();
                 if (pieceCount == 0) {
                     botToTop.setPower(1);
@@ -345,17 +337,17 @@ public class Intake {
                 }
             }
         } else if (isToggledPattern) {
-
             switch (state) {
-                case SHOOTING:
+//                case SHOOTING:
     //            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
     //                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
-                        isToggledIntake = true;
-                        intaking();
-                        centerHold();
-                        botToTop.setPower(1);
-                        topToShoot.setPower(1);
-                        break;
+//                        isToggledIntake = true;
+//                        intaking();
+//                        centerHold();
+//                        botToTop.setPower(1);
+//                        topToShoot.setPower(1);
+//                        shooter.runShooter();
+//                        break;
 //                }
 
                 case NOTHING:
@@ -364,6 +356,8 @@ public class Intake {
                     pieceCount = 0;
                     greenCount = 0;
 
+                    topToShoot.setPower(0);
+                    shooter.idle();
                     centerHold();
                     botToTop.setPower(1);
                     getRight();
@@ -379,6 +373,7 @@ public class Intake {
                 case R:
                     centerHold();
                     botToTop.setPower(1);
+                    shooter.idle();
                     getRight();
                     if (rightCount == 2) {
                         state = States.RR;
@@ -392,6 +387,7 @@ public class Intake {
                 case RR:
                     centerHold();
                     botToTop.setPower(0);
+                    shooter.idle();
                     getRight();
                     if (rightCount == 3) {
                         state = States.RRR;
@@ -403,6 +399,7 @@ public class Intake {
                     break;
 
                 case RRR:
+                    shooter.idle();
                     if (timer.time() > firstShuffle) {
                         swapIntakeToggle();
                     }
@@ -411,6 +408,7 @@ public class Intake {
                     break;
 
                 case RRW:
+                    shooter.idle();
                     centerHold();
                     if (greenCount == 2 && Objects.equals(pattern[0], "Green")) {
                         if (timer.time() < firstShuffle) {
@@ -445,6 +443,7 @@ public class Intake {
 //                    }
 //                  break;
                 case RW:
+                    shooter.idle();
                     if (greenCount == 2 && timer.time() < firstShuffle) {
                         topToShoot.setPower(1);
                         botToTop.setPower(1);
@@ -464,16 +463,19 @@ public class Intake {
                     break;
 
                 case RWR:
+                    shooter.idle();
                     shuffle();
                     state = States.RRR;
                     break;
 
                 case RWW:
+                    shooter.idle();
                     shuffleOut();
                     state = States.RW;
                     break;
 
                 case W:
+                    shooter.idle();
                     centerHold();
                     botToTop.setPower(0);
                     getRight();
@@ -487,6 +489,7 @@ public class Intake {
                     break;
 
                 case WR:
+                    shooter.idle();
                     shuffle();
                     if (timer.time() > firstShuffle && timer.time() < secondShuffle) {
                         botToTop.setPower(1);
@@ -497,6 +500,7 @@ public class Intake {
                     break;
 
                 case WW:
+                    shooter.idle();
                     shuffleOut();
                     state = States.W;
                     break;

@@ -28,10 +28,10 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-//            .forwardPodY(-5) //inches
-//            .strafePodX(0.5) //inches
-            .forwardPodY(0.5)
-            .strafePodX(-5)
+            .forwardPodY(-5) //inches
+            .strafePodX(0.5) //inches
+//            .forwardPodY(0.5)
+//            .strafePodX(-5)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("gyro")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)

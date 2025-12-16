@@ -68,6 +68,9 @@ public class Shooter {
     private double[] settingsDistance;
     private double[] settingsShooterSpeeds;
 
+    private static final double GEAR_RATIO = 2.0; // output / motor
+    private static final double IDLE_POWER = 0.1;
+
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
@@ -77,8 +80,8 @@ public class Shooter {
         shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterLeft .setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-//        shooterRight.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
-//        shooterLeft.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
+        shooterRight.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
+        shooterLeft.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
 
         ticksPerRev = shooterRight.getMotorType().getTicksPerRev();
 
@@ -86,6 +89,11 @@ public class Shooter {
         settingsShooterSpeeds = Settings.Shooter.shooterSpeeds;
 
         rpmRegression();
+    }
+
+    public void idle() {
+        shooterRight.setPower(IDLE_POWER);
+        shooterLeft.setPower(IDLE_POWER);
     }
 
     public void rpmRegression() {
@@ -114,11 +122,11 @@ public class Shooter {
         shooterLeft.setVelocity(ticksPerSec);
     }
 
-    public void setShooterSpeed(int x) {
-        double ticksPerSec = (x / 60.0) * ticksPerRev;
-        shooterRight.setVelocity(ticksPerSec);
-        shooterLeft.setVelocity(ticksPerSec);
-    }
+//    public void setShooterSpeed(int x) {
+//        double ticksPerSec = (x / 60.0) * ticksPerRev;
+//        shooterRight.setVelocity(ticksPerSec);
+//        shooterLeft.setVelocity(ticksPerSec);
+//    }
 
     public void runShooter() {
         shooterRight.setPower(1);
@@ -126,7 +134,8 @@ public class Shooter {
     }
 
     public double getShooterCurrentRPM() {
-        return shooterRight.getVelocity() * 60.0 / ticksPerRev;
+        double motorRPM = shooterRight.getVelocity() * 60.0 / 537.6;
+        return motorRPM * GEAR_RATIO;
     }
 
     public void stop() {
