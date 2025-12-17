@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,10 +16,12 @@ import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Configurable
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TmanzOp", group = "teleOp")
 public class TmanzOp extends LinearOpMode {
 
@@ -26,7 +33,9 @@ public class TmanzOp extends LinearOpMode {
     private ShooterHood shooterHood;
     private Limelight limelight;
 
-    public volatile double yaw;
+    private Follower follower;
+    public static Pose startDrivePose;
+    private TelemetryManager telemetryM;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -40,9 +49,7 @@ public class TmanzOp extends LinearOpMode {
 
         gyro = hardwareMap.get(GoBildaPinpointDriver.class, "gyro");
 
-        List<DcMotorEx> allMotors = Arrays.asList(
-                fl, fr, bl, br
-        );
+        List<DcMotorEx> allMotors = Arrays.asList(fl, fr, bl, br);
 
         allMotors.forEach(motor -> {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -55,20 +62,32 @@ public class TmanzOp extends LinearOpMode {
         limelight = new Limelight(hardwareMap);
         intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
 
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)) : new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)).mirror());
+        follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
         waitForStart();
+
+        follower.startTeleopDrive(true);
 
         intake.stateHandler();
         shooter.idle();
 
         while (opModeIsActive()) {
-            double y = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x;// * 1.1;
-            double rx = gamepad1.right_stick_x;
-            drive(y, x, rx);
+            follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x,
+                    false // field Centric
+            );
 
-//            if (gamepad1.y) {
-//                intake.swapPatternToggle();
-//            }
+            follower.update();
+            telemetryM.update();
+
+            if (gamepad1.y) {
+                intake.swapPatternToggle();
+            }
 
             if (gamepad1.y) {
                 intake.startTopToShoot();
@@ -106,25 +125,5 @@ public class TmanzOp extends LinearOpMode {
             telemetry.addData("shooting", shootingPressed);
             telemetry.update();
         }
-    }
-
-    public void drive(double y, double x, double rx) {
-        double botHeading = yaw;
-
-        x = x * 1.1;
-
-        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
-        double frontLeftPower = (rotY + rotX + rx) / denominator;
-        double backLeftPower = (rotY - rotX + rx) / denominator;
-        double frontRightPower = (rotY - rotX - rx) / denominator;
-        double backRightPower = (rotY + rotX - rx) / denominator;
-
-        fl.setPower(frontLeftPower);
-        bl.setPower(backLeftPower);
-        fr.setPower(frontRightPower);
-        br.setPower(backRightPower);
     }
 }
