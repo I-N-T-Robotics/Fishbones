@@ -47,7 +47,7 @@ public class TmanzOp extends LinearOpMode {
         fl.setDirection(DcMotorSimple.Direction.REVERSE);
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        gyro = hardwareMap.get(GoBildaPinpointDriver.class, "gyro");
+        gyro = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
         List<DcMotorEx> allMotors = Arrays.asList(fl, fr, bl, br);
 
@@ -84,6 +84,10 @@ public class TmanzOp extends LinearOpMode {
 
             follower.update();
             telemetryM.update();
+
+            if (gamepad1.start) {
+                gyro.resetPosAndIMU();
+            }
 
             if (gamepad1.y) {
                 intake.swapPatternToggle();
