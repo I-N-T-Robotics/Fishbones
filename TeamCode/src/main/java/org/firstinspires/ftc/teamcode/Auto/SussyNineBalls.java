@@ -112,6 +112,7 @@ public class SussyNineBalls extends ActionOpMode {
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(0))
+                .addTemporalCallback(0, () -> slowMode(true))
                 .build();
 
         scoreSecond = follower
@@ -121,6 +122,8 @@ public class SussyNineBalls extends ActionOpMode {
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(132))
                 .addParametricCallback(0.5, () -> run(shooterActions.shooterA.shoot()))
+                .addTemporalCallback(0, () -> slowMode(false))
+
                 .build();
 
         intakeSecond = follower
@@ -156,7 +159,7 @@ public class SussyNineBalls extends ActionOpMode {
         tasks.clear();
 
         PathChainTask preloadTask = new PathChainTask(scorePreload, 3)
-                .addWaitAction(0.1, new ParallelAction(intakeActions.intakeA.index(), intakeActions.intakeA.feed(), intakeActions.intakeA.holdNuts()))
+                .addWaitAction(0.5, new ParallelAction(intakeActions.intakeA.index(), intakeActions.intakeA.feed(), intakeActions.intakeA.holdNuts()))
                 .addWaitAction(2.9, new ParallelAction(intakeActions.intakeA.stopFeed(), intakeActions.intakeA.forwardIntake()));
         tasks.add(preloadTask);
 
