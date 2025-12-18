@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 import java.util.Objects;
 
-public class Intake {
+public class    Intake {
     private final CRServo frontIntakeRight, frontIntakeLeft;
     private final CRServo backIntakeRight, backIntakeLeft;
     public boolean isToggledIntake;
@@ -155,6 +155,14 @@ public class Intake {
         topToShoot.setPower(1);
     }
 
+    public void setfeeder(double speed) {
+        topToShoot.setPower(speed);
+    }
+
+    public void setIndexer(double speed) {
+        botToTop.setPower(speed);
+    }
+
     public void intaking() {
         if (isToggledIntake) {
             frontIntake();
@@ -165,6 +173,7 @@ public class Intake {
         }
     }
 
+    //TODO: ahh abstraction
     public void frontIntake() {
         frontIntakeRight.setPower(1);
         frontIntakeLeft.setPower(1);

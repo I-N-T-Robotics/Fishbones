@@ -82,7 +82,6 @@ public class Shooter {
 
         shooterRight.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
         shooterLeft.setVelocityPIDFCoefficients(Settings.Shooter.kP, Settings.Shooter.kI, Settings.Shooter.kD, Settings.Shooter.kF);
-
         ticksPerRev = shooterRight.getMotorType().getTicksPerRev();
 
         settingsDistance = Settings.Shooter.distances;
@@ -131,6 +130,11 @@ public class Shooter {
     public void runShooter() {
         shooterRight.setPower(1);
         shooterLeft.setPower(1);
+    }
+
+    public void setShooter(double speed) {
+        shooterRight.setPower(speed);
+        shooterLeft.setPower(speed);
     }
 
     public double getShooterCurrentRPM() {
