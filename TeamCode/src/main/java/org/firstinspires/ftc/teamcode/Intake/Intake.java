@@ -68,7 +68,7 @@ public class Intake {
         WW
     }
 
-    public Intake(HardwareMap hardwareMap, Shooter shooter, ShooterHood shooterHood, Limelight limelight) {
+    public Intake(HardwareMap hardwareMap, Shooter shooter, ShooterHood shooterHood) {
         this.shooter = shooter;
         this.shooterHood = shooterHood;
         this.limelight = limelight;
@@ -279,7 +279,7 @@ public class Intake {
             shooter.runShooter();
 //            if shooter is at speed and hood is at angle
 //            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
-//                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
+//                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCommandedAngle() < 5) {
             if ((shooter.getShooterCurrentRPM() > 100)) {
                 isToggledIntake = true;
                 intaking();

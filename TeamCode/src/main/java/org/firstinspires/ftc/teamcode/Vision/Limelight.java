@@ -9,33 +9,57 @@ import java.util.List;
 
 public class Limelight {
 
-    private Limelight3A limelight;
+    private final Limelight3A limelight;
+
     private LLResult result;
-    private double dist;
-    private List<LLResultTypes.FiducialResult> fiducialResults;
-    private int tagId;
+    private double distance = 0.0;
+    private int tagId = -1;
+    private boolean hasTarget = false;
 
     public Limelight(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
         limelight.pipelineSwitch(0);
         limelight.setPollRateHz(50);
         limelight.start();
+    }
 
-        this.result = limelight.getLatestResult();
+    public void update() {
+        result = limelight.getLatestResult();
 
-        this.dist = result.getBotposeAvgDist();
-
-        this.fiducialResults = result.getFiducialResults();
-        for (LLResultTypes.FiducialResult fr : fiducialResults) {
-            this.tagId = fr.getFiducialId();
+        if (result == null || !result.isValid()) {
+            hasTarget = false;
+            distance = 0.0;
+            tagId = -1;
+            return;
         }
+
+        List<LLResultTypes.FiducialResult> fiducials =
+                result.getFiducialResults();
+
+        if (fiducials.isEmpty()) {
+            hasTarget = false;
+            distance = 0.0;
+            tagId = -1;
+            return;
+        }
+
+        LLResultTypes.FiducialResult tag = fiducials.get(0);
+
+        hasTarget = true;
+        tagId = tag.getFiducialId();
+        distance = result.getBotposeAvgDist();
+    }
+
+    public boolean hasTarget() {
+        return hasTarget;
     }
 
     public double getDistance() {
-        return dist;
+        return distance;
     }
 
-    public int getTagID() {
+    public int getTagId() {
         return tagId;
     }
 }

@@ -53,7 +53,7 @@ public class TestOp extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         shooterHood = new ShooterHood(hardwareMap);
         limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter, shooterHood);
 
         waitForStart();
 
@@ -99,7 +99,7 @@ public class TestOp extends LinearOpMode {
             }
 
             telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
+            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCommandedAngle());
             telemetry.addData("distance", limelight.getDistance());
             telemetry.addData("mode", intake.state);
             telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));

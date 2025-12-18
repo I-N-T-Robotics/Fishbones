@@ -240,7 +240,7 @@ public class finalBlueAuto extends OpMode {
         opModeTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
 
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter, shooterHood);
         shooter = new Shooter(hardwareMap);
         shooterHood = new ShooterHood(hardwareMap);
 
@@ -256,7 +256,7 @@ public class finalBlueAuto extends OpMode {
         opModeTimer.resetTimer();
         setPathState(pathState);
 
-        int detectedTag = limelight.getTagID();
+        int detectedTag = limelight.getTagId();
         Intake.saveTagID(hardwareMap, detectedTag);
     }
 

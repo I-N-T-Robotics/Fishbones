@@ -43,7 +43,7 @@ public class ShooterHood {
         return hoodAngle.calculatePoint(distance);
     }
 
-    public double getHoodCurrentAngle() {
+    public double getHoodCommandedAngle() {
         return hood.getPosition();
     }
 

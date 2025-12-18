@@ -34,7 +34,6 @@ public class TmanzOp extends LinearOpMode {
     private Limelight limelight;
 
     private Follower follower;
-    public static Pose startDrivePose;
     private TelemetryManager telemetryM;
 
     @Override
@@ -60,10 +59,11 @@ public class TmanzOp extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         shooterHood = new ShooterHood(hardwareMap);
         limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter, shooterHood);
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)) : new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)).mirror());
+        //follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)) : new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)).mirror());
+        follower.setStartingPose(new Pose(135.67741935483872, 8.129032258064509, Math.toRadians(90)));
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -77,21 +77,22 @@ public class TmanzOp extends LinearOpMode {
         while (opModeIsActive()) {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,
-                    gamepad1.left_stick_x,
-                    gamepad1.right_stick_x,
+                    -gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x,
                     false // field Centric
             );
 
             follower.update();
             telemetryM.update();
+            limelight.update();
 
             if (gamepad1.start) {
                 gyro.resetPosAndIMU();
             }
 
-            if (gamepad1.y) {
-                intake.swapPatternToggle();
-            }
+//            if (gamepad1.y) {
+//                intake.swapPatternToggle();
+//            }
 
             if (gamepad1.y) {
                 intake.startTopToShoot();
@@ -122,8 +123,10 @@ public class TmanzOp extends LinearOpMode {
             intake.stateHandler();
 
             telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
-            telemetry.addData("distance", limelight.getDistance());
+            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCommandedAngle());
+            telemetry.addData("Has Target", limelight.hasTarget());
+            telemetry.addData("Tag ID", limelight.getTagId());
+            telemetry.addData("Distance", limelight.getDistance());
             telemetry.addData("mode", intake.state);
             telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));
             telemetry.addData("shooting", shootingPressed);
