@@ -2,7 +2,11 @@ repositories {
     mavenCentral()
     google() // Needed for androidx
     gradlePluginPortal()
-    maven { url = "https://mymaven.bylazar.com/releases" }  //pedropathing
+    maven {
+        url = "https://mymaven.bylazar.com/releases" // pp
+        url = 'https://maven.brott.dev/' // rr
+    }
+
 }
 
 wpilibRepositories.addAllReleaseRepositories(project)
