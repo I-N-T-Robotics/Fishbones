@@ -3,26 +3,44 @@ package org.firstinspires.ftc.teamcode.Util.actions;
 import com.acmerobotics.roadrunner.Action;
 
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 public class ShooterActions {
 
     public final Shooter shooter;
+    public final Limelight limelight;
+    public final ShooterHood shooterHood;
     public final ShooterA shooterA;
 
-    public ShooterActions(Shooter shooter) {
+    public ShooterActions(Shooter shooter, Limelight limelight, ShooterHood shooterHood) {
         this.shooter = shooter;
+        this.limelight = limelight;
+        this.shooterHood = shooterHood;
         this.shooterA = new ShooterA();
     }
 
     public class ShooterA {
-        public Action setShooter(double speed) {
+        public Action setShooterSpeed(double distance) {
             return t -> {
-                shooter.setShooter(speed);
+                shooter.setShooterSpeed(distance - 0.4);
                 return false;
             };
         }
 
-        public Action shoot() { return setShooter(.3); }
-        public Action stopShoot() { return setShooter(0); }
+        public Action setHoodAngle(double distance) {
+            return t -> {
+                shooterHood.setHoodPosition(distance);
+                return false;
+            };
+        }
+
+        public Action shoot() {
+            return setShooterSpeed(limelight.getLastDist());
+        }
+
+        public Action hoodAngle() {
+            return setHoodAngle(limelight.getLastDist());
+        }
     }
 }

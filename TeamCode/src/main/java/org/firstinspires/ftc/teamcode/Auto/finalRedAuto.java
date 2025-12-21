@@ -1,268 +1,291 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Util.actions.ActionOpMode;
+import org.firstinspires.ftc.teamcode.Util.actions.IntakeActions;
+import org.firstinspires.ftc.teamcode.Util.actions.ShooterActions;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Autonomous(name = "finalRedAuto", group = "Autos")
-public class finalRedAuto extends OpMode {
+public class finalRedAuto extends ActionOpMode {
+
+    private static class WaitAction {
+        double triggerTime;
+        Action action;
+        boolean triggered = false;
+
+        WaitAction(double triggerTime, Action action) {
+            this.triggerTime = triggerTime;
+            this.action = action;
+        }
+    }
+
+    private static class PathChainTask {
+        PathChain path;
+        double waitTime;
+        List<WaitAction> waitActions = new ArrayList<>();
+
+        PathChainTask(PathChain path, double waitTime) {
+            this.path = path;
+            this.waitTime = waitTime;
+        }
+
+        PathChainTask addWaitAction(double triggerTime, Action action) {
+            waitActions.add(new WaitAction(triggerTime, action));
+            return this;
+        }
+
+        void reset() {
+            for (WaitAction wa : waitActions) {
+                wa.triggered = false;
+            }
+        }
+    }
+
+    private static final double PATH_COMPLETION_T = 0.985;
 
     private Follower follower;
-    private Timer pathTimer, opModeTimer;
-    private Limelight limelight;
+    private Timer pathTimer;
+
     private Intake intake;
     private Shooter shooter;
-    private ShooterHood shooterHood;
+    private IntakeActions intakeActions;
+    private ShooterActions shooterActions;
 
-    public enum PathState{
-        DRIVESTART_TO_SHOOTPRELOAD,
-        SHOOT_PRELOAD,
-        SHOOTPRELOAD_TO_INTAKE1,
-        INTAKE1_TO_SHOOT1,
-        SHOOT1_TO_INTAKE2,
-        INTAKE2_TO_SHOOT2,
-        SHOOT2_TO_INTAKE3,
-        INTAKE3_TO_SHOOT3,
-        SHOOT3_TO_INTAKE4,
-        INTAKE4_TO_SHOOT4
+    private final List<PathChainTask> tasks = new ArrayList<>();
+    private int currentTaskIndex = 0;
+    private int taskPhase = 0; // 0 = DRIVE, 1 = WAIT
+
+    private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(-36));
+
+    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, Math.toRadians(143));
+    private final Pose shootPreloadAssist = new Pose(76.64516129032258, 89.2258064516129);
+
+    private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, Math.toRadians(180));
+    private final Pose intake1Assist = new Pose(49.5483870967742, 72.19354838709677);
+
+    private final Pose shoot1Pose = new Pose(51.67741935483871, 82.06451612903226, Math.toRadians(128));
+
+    private final Pose intake2 = new Pose(14.516129032258064, 67.74193548387098, Math.toRadians(180));
+    private final Pose intake2Assist1 = new Pose(63.096774193548384, 64.45161290322581);
+    private final Pose intake2Assist2 = new Pose(26.516129032258064, 44.32258064516128);
+
+    private final Pose shoot2Pose = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
+    private final Pose shoot2Assist = new Pose(38.32258064516129, 52.25806451612903);
+
+    private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, Math.toRadians(180));
+    private final Pose intake3Assist = new Pose(45.29032258064516, 36.38709677419355);
+
+    private final Pose shoot3Pose = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
+    private final Pose shoot3Assist = new Pose(45.29032258064516, 36.38709677419355);
+
+    private final Pose intake4 = new Pose(8.70967741935484, 7.935483870967735, Math.toRadians(270));
+    private final Pose intake4Assist = new Pose(7.548387096774194, 33.09677419354839);
+
+    private final Pose shoot4Pose = new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112));
+    private final Pose shoot4Assist = new Pose(27.677419354838708, 26.903225806451605);
+
+    private Paths paths;
+
+    public class Paths {
+
+        public PathChain preload;
+        public PathChain intake1P, shoot1P;
+        public PathChain intake2P, shoot2P;
+        public PathChain intake3P, shoot3P;
+        public PathChain intake4P, shoot4P;
+
+        Paths(Follower follower) {
+
+            preload = follower.pathBuilder()
+                    .addPath(new BezierCurve(start, shootPreloadAssist, shootPreload))
+                    .setLinearHeadingInterpolation(start.getHeading(), shootPreload.getHeading())
+                    .build();
+
+            intake1P = follower.pathBuilder()
+                    .addPath(new BezierCurve(shootPreload, intake1Assist, intake1))
+                    .setLinearHeadingInterpolation(shootPreload.getHeading(), intake1.getHeading())
+                    .build();
+
+            shoot1P = follower.pathBuilder()
+                    .addPath(new BezierCurve(intake1, intake1Assist, shoot1Pose))
+                    .setLinearHeadingInterpolation(intake1.getHeading(), shoot1Pose.getHeading())
+                    .build();
+
+            intake2P = follower.pathBuilder()
+                    .addPath(new BezierCurve(shoot1Pose, intake2Assist1, intake2Assist2, intake2))
+                    .setLinearHeadingInterpolation(shoot1Pose.getHeading(), intake2.getHeading())
+                    .build();
+
+            shoot2P = follower.pathBuilder()
+                    .addPath(new BezierCurve(intake2, shoot2Assist, shoot2Pose))
+                    .setLinearHeadingInterpolation(intake2.getHeading(), shoot2Pose.getHeading())
+                    .build();
+
+            intake3P = follower.pathBuilder()
+                    .addPath(new BezierCurve(shoot2Pose, intake3Assist, intake3))
+                    .setLinearHeadingInterpolation(shoot2Pose.getHeading(), intake3.getHeading())
+                    .build();
+
+            shoot3P = follower.pathBuilder()
+                    .addPath(new BezierCurve(intake3, shoot3Assist, shoot3Pose))
+                    .setLinearHeadingInterpolation(intake3.getHeading(), shoot3Pose.getHeading())
+                    .build();
+
+            intake4P = follower.pathBuilder()
+                    .addPath(new BezierCurve(shoot3Pose, intake4Assist, intake4))
+                    .setLinearHeadingInterpolation(shoot3Pose.getHeading(), intake4.getHeading())
+                    .build();
+
+            shoot4P = follower.pathBuilder()
+                    .addPath(new BezierCurve(intake4, shoot4Assist, shoot4Pose))
+                    .setLinearHeadingInterpolation(intake4.getHeading(), shoot4Pose.getHeading())
+                    .build();
+        }
     }
 
-    PathState pathState;
+    private void buildTaskList() {
+        tasks.clear();
 
-    private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(135)).mirror();
-    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, Math.toRadians(135)).mirror();
-    private final Pose shootPreloadAssist = new Pose(76.64516129032258, 89.2258064516129).mirror();
-    private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, Math.toRadians(180)).mirror();
-    private final Pose intake1Assist = new Pose(49.5483870967742, 72.19354838709677).mirror();
-    private final Pose shoot1 = new Pose(51.67741935483871, 82.06451612903226, Math.toRadians(128)).mirror();
-    private final Pose intake2 = new Pose(14.516129032258064, 67.74193548387098, Math.toRadians(180)).mirror();
-    private final Pose intake2Assist1 = new Pose(63.096774193548384, 64.45161290322581).mirror();
-    private final Pose intake2Assist2 = new Pose(26.516129032258064, 44.32258064516128).mirror();
-    private final Pose shoot2 = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112)).mirror();
-    private final Pose shoot2Assist = new Pose(38.32258064516129, 52.25806451612903).mirror();
-    private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, Math.toRadians(180)).mirror();
-    private final Pose intake3Assist = new Pose(45.29032258064516, 36.38709677419355).mirror();
-    private final Pose shoot3 = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112)).mirror();
-    private final Pose shoot3Assist = new Pose(45.29032258064516, 36.38709677419355).mirror();
-    private final Pose intake4 = new Pose(8.70967741935484, 7.935483870967735, Math.toRadians(270)).mirror();
-    private final Pose intake4Assist = new Pose(7.548387096774194, 33.09677419354839).mirror();
-    private final Pose shoot4 = new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)).mirror();
-    private final Pose shoot4Assist = new Pose(27.677419354838708, 26.903225806451605).mirror();
+        tasks.add(new PathChainTask(paths.preload, 3.0)
+                .addWaitAction(0.0, shootRamp())
+                .addWaitAction(0.0, intakeAction())
+                .addWaitAction(1, intakeActions.intakeA.feed()));
 
-    private PathChain startToShootPreload,
-            shootPreloadToIntake1,
-            intake1ToShoot1,
-            shoot1ToIntake2,
-            intake2ToShoot2,
-            shoot2ToIntake3,
-            intake3ToShoot3,
-            shoot3ToIntake4,
-            intake4ToShoot4;
+        tasks.add(new PathChainTask(paths.intake1P, 0.4)
+                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
+                .addWaitAction(0.0, intakeAction()));
 
-    public void buildPaths() {
-        startToShootPreload = follower.pathBuilder()
-                .addPath(new BezierCurve(start, shootPreloadAssist, shootPreload))
-                .setLinearHeadingInterpolation(start.getHeading(), shootPreload.getHeading())
-                .build();
-        shootPreloadToIntake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(shootPreload, intake1Assist, intake1))
-                .setLinearHeadingInterpolation(shootPreload.getHeading(),intake1.getHeading())
-                .build();
-        intake1ToShoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(intake1, shoot1))
-                .setLinearHeadingInterpolation(intake1.getHeading(), shoot1.getHeading())
-                .build();
-        shoot1ToIntake2 = follower.pathBuilder()
-                .addPath(new BezierCurve(shoot1, intake2Assist1, intake2Assist2, intake2))
-                .setLinearHeadingInterpolation(shoot1.getHeading(), intake2.getHeading())
-                .build();
-        intake2ToShoot2 = follower.pathBuilder()
-                .addPath(new BezierCurve(intake2, shoot2Assist, shoot2))
-                .setLinearHeadingInterpolation(intake2.getHeading(), shoot2.getHeading())
-                .build();
-        shoot2ToIntake3 = follower.pathBuilder()
-                .addPath(new BezierCurve(shoot2, intake3Assist, intake3))
-                .setLinearHeadingInterpolation(shoot2.getHeading(), intake3.getHeading())
-                .build();
-        intake3ToShoot3 = follower.pathBuilder()
-                .addPath(new BezierCurve(intake3, shoot3Assist, shoot3))
-                .setLinearHeadingInterpolation(intake3.getHeading(), shoot3.getHeading())
-                .build();
-        shoot3ToIntake4 = follower.pathBuilder()
-                .addPath(new BezierCurve(shoot3, intake4Assist, intake4))
-                .setLinearHeadingInterpolation(shoot3.getHeading(), intake4.getHeading())
-                .build();
-        intake4ToShoot4 = follower.pathBuilder()
-                .addPath(new BezierCurve(intake4, shoot4Assist, shoot4))
-                .setLinearHeadingInterpolation(intake4.getHeading(), shoot4.getHeading())
-                .build();
+        tasks.add(new PathChainTask(paths.shoot1P, 3.0)
+                .addWaitAction(0.0, shootRamp())
+                .addWaitAction(0.0, intakeAction())
+                .addWaitAction(1, intakeActions.intakeA.feed()));
+
+        tasks.add(new PathChainTask(paths.intake2P, 1) //clear balls
+                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
+                .addWaitAction(0.0, intakeAction()));
+
+        tasks.add(new PathChainTask(paths.shoot2P, 3.5)
+                .addWaitAction(0.0, shootRamp())
+                .addWaitAction(0.0, intakeAction())
+                .addWaitAction(1.5, intakeActions.intakeA.feed()));
+
+        tasks.add(new PathChainTask(paths.intake3P, 0.4)
+                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
+                .addWaitAction(0.0, intakeAction()));
+
+        tasks.add(new PathChainTask(paths.shoot3P, 3.0)
+                .addWaitAction(0.0, shootRamp())
+                .addWaitAction(0.0, intakeAction())
+                .addWaitAction(1, intakeActions.intakeA.feed()));
+
+        tasks.add(new PathChainTask(paths.intake4P, 0.4)
+                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
+                .addWaitAction(0.0, intakeAction()));
+
+        tasks.add(new PathChainTask(paths.shoot4P, 3.0)
+                .addWaitAction(0.0, shootRamp())
+                .addWaitAction(0.0, intakeAction())
+                .addWaitAction(1, intakeActions.intakeA.feed()));
     }
 
-    public void statePathUpdate() {
-        switch(pathState) {
-            case DRIVESTART_TO_SHOOTPRELOAD:
-                follower.followPath(startToShootPreload, true);
-                setPathState(PathState.SHOOT_PRELOAD);
-                break;
+    private Action shootRamp() {
+        return new ParallelAction(
+                shooterActions.shooterA.shoot(),
+                shooterActions.shooterA.hoodAngle()
+        );
+    }
 
-            case SHOOT_PRELOAD:
-                if(!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() < 1) {
-                        shooter.setShooterSpeed(limelight.getDistance());
-                        shooterHood.setHoodPosition(limelight.getDistance());
-                        intake.state = Intake.States.SHOOTING;
-                    }
-                    setPathState(PathState.SHOOTPRELOAD_TO_INTAKE1);
+    private Action intakeAction() {
+        return new ParallelAction(
+                intakeActions.intakeA.forwardIntake(),
+                intakeActions.intakeA.index(),
+                intakeActions.intakeA.holdNuts()
+        );
+    }
+
+    private void runTasks() {
+        if (currentTaskIndex >= tasks.size()) return;
+
+        PathChainTask task = tasks.get(currentTaskIndex);
+
+        switch (taskPhase) {
+
+            case 0: // DRIVE
+                if (!follower.isBusy()) {
+                    follower.followPath(task.path, true);
+                    pathTimer.resetTimer();
+                    task.reset();
+                }
+
+                if (follower.getCurrentTValue() >= PATH_COMPLETION_T) {
+                    pathTimer.resetTimer();
+                    taskPhase = 1;
                 }
                 break;
 
-            case SHOOTPRELOAD_TO_INTAKE1:
-                if(!follower.isBusy()) {
-                    intake.frontIntake();
-                    intake.backIntake();
-                    intake.state = Intake.States.OFF;
-                    follower.followPath(shootPreloadToIntake1, true);
-                    setPathState(PathState.INTAKE1_TO_SHOOT1);
-                }
-                break;
+            case 1: // WAIT
+                double t = pathTimer.getElapsedTimeSeconds();
 
-            case INTAKE1_TO_SHOOT1:
-                if(!follower.isBusy()) {
-                    intake.frontIntakeStop();
-                    intake.backIntakeStop();
-                    follower.followPath(intake1ToShoot1, true);
-                    setPathState(PathState.SHOOT1_TO_INTAKE2);
-                }
-                break;
-
-            case SHOOT1_TO_INTAKE2:
-                if(!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() < 1) {
-                        shooter.setShooterSpeed(limelight.getDistance());
-                        shooterHood.setHoodPosition(limelight.getDistance());
-                        intake.state = Intake.States.SHOOTING;
-                    }
-                    intake.frontIntake();
-                    intake.backIntake();
-                    intake.state = Intake.States.NOTHING;
-                    follower.followPath(shoot1ToIntake2, true);
-                    setPathState(PathState.INTAKE2_TO_SHOOT2);
-                }
-                break;
-
-            case INTAKE2_TO_SHOOT2:
-                if(!follower.isBusy()) {
-                    intake.frontIntakeStop();
-                    intake.backIntakeStop();
-                    follower.followPath(intake2ToShoot2, true);
-                    setPathState(PathState.SHOOT2_TO_INTAKE3);
-                }
-                break;
-
-            case SHOOT2_TO_INTAKE3:
-                if(!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() < 1) {
-                        shooter.setShooterSpeed(limelight.getDistance());
-                        shooterHood.setHoodPosition(limelight.getDistance());
-                        intake.state = Intake.States.SHOOTING;
-                    }
-                    intake.frontIntake();
-                    intake.backIntake();
-                    intake.state = Intake.States.NOTHING;
-                    follower.followPath(shoot2ToIntake3, true);
-                    setPathState(PathState.INTAKE3_TO_SHOOT3);
-                }
-                break;
-
-            case INTAKE3_TO_SHOOT3:
-                if(!follower.isBusy()) {
-                    intake.frontIntakeStop();
-                    intake.backIntakeStop();
-                    follower.followPath(intake3ToShoot3, true);
-                    setPathState(PathState.SHOOT3_TO_INTAKE4);
-                }
-                break;
-
-            case SHOOT3_TO_INTAKE4:
-                if(!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() < 1) {
-                        shooter.setShooterSpeed(limelight.getDistance());
-                        shooterHood.setHoodPosition(limelight.getDistance());
-                        intake.state = Intake.States.SHOOTING;
-                    }
-                    intake.frontIntake();
-                    intake.backIntake();
-                    intake.state = Intake.States.NOTHING;
-                    follower.followPath(shoot3ToIntake4, true);
-                    setPathState(PathState.INTAKE4_TO_SHOOT4);
-                }
-                break;
-
-            case INTAKE4_TO_SHOOT4:
-                if(!follower.isBusy()) {
-                    intake.frontIntakeStop();
-                    intake.backIntakeStop();
-                    follower.followPath(intake4ToShoot4, true);
-                    if(!follower.isBusy()) {
-                        shooter.setShooterSpeed(limelight.getDistance());
-                        shooterHood.setHoodPosition(limelight.getDistance());
-                        intake.state = Intake.States.SHOOTING;
+                for (WaitAction wa : task.waitActions) {
+                    if (!wa.triggered && t >= wa.triggerTime) {
+                        run(wa.action);
+                        wa.triggered = true;
                     }
                 }
-                break;
 
-            default:
-                telemetry.addLine("broken");
+                if (t >= task.waitTime) {
+                    currentTaskIndex++;
+                    taskPhase = 0;
+                }
                 break;
         }
     }
 
-    public void setPathState(PathState newState) {
-        pathState = newState;
+    @Override
+    public void init() {
+
+        pathTimer = new Timer();
+
+        shooter = new Shooter(hardwareMap);
+        intake = new Intake(hardwareMap, shooter, new ShooterHood(hardwareMap), new Limelight(hardwareMap));
+
+        shooterActions = new ShooterActions(shooter, new Limelight(hardwareMap), new ShooterHood(hardwareMap));
+        intakeActions = new IntakeActions(intake);
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(start);
+
+        paths = new Paths(follower);
+        buildTaskList();
+    }
+
+    @Override
+    public void start() {
+        currentTaskIndex = 0;
+        taskPhase = 0;
         pathTimer.resetTimer();
     }
 
     @Override
-    public void init() {
-        pathState = PathState.DRIVESTART_TO_SHOOTPRELOAD;
-        pathTimer = new Timer();
-        opModeTimer = new Timer();
-        follower = Constants.createFollower(hardwareMap);
-
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
-        shooter = new Shooter(hardwareMap);
-        shooterHood = new ShooterHood(hardwareMap);
-
-        limelight = new Limelight(hardwareMap);
-
-        Intake.resetTagID(hardwareMap);
-
-        buildPaths();
-        follower.setPose(start);
-    }
-
-    public void start() {
-        opModeTimer.resetTimer();
-        setPathState(pathState);
-
-        int detectedTag = limelight.getTagID();
-        Intake.saveTagID(hardwareMap, detectedTag);
-    }
-
-    @Override
     public void loop() {
+        super.loop();
         follower.update();
-        statePathUpdate();
+        runTasks();
     }
 }

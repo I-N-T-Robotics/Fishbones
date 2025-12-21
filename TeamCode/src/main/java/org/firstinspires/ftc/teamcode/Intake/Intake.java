@@ -35,6 +35,9 @@ public class    Intake {
     private int pieceCount = 0;
     private int greenCount = 0;
 
+    private double testRPM = 100;
+    private double testAngle = 0.2;
+
     public States state;
     public States previousState = States.OFF;
     public States stateBeforeShooting = States.OFF;
@@ -283,13 +286,48 @@ public class    Intake {
         }
     }
 
+    public void increaseTestRPM() {
+        testRPM += 5;
+    }
+
+    public void decreaseTestRPM() {
+        testRPM -= 5;
+    }
+
+    public void increaseTestAngle() {
+        testAngle += 0.01;
+    }
+
+    public void decreaseTestAngle() {
+        testAngle -= 0.01;
+    }
+
+    public double getTestRPM() {
+        return testRPM;
+    }
+
+    public double getHoodTestAngle() {
+        return testAngle;
+    }
+
+    public double getbotToTopSpeed() {
+        return botToTop.getVelocity();
+    }
+
     public void stateHandler() {
         if (state == States.SHOOTING) {
-            shooter.runShooter();
+            shooter.setShooterSpeed(limelight.getLastDist());
+            shooterHood.setHoodPosition(limelight.getLastDist());
+//            shooter.runShooter(); runs at max speed
+            //testing stuff
+//            shooter.setShooterSpeedTest(testRPM);
+//            shooterHood.setHoodTestAngle(testAngle);
+
 //            if shooter is at speed and hood is at angle
-//            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
-//                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
-            if ((shooter.getShooterCurrentRPM() > 100)) {
+            if ((shooter.getShooterCurrentRPM() > shooter.getShooterRPM(limelight.getDistance())) &&
+                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
+                //testing stuff
+//            if ((shooter.getShooterCurrentRPM() > testRPM)) {
                 isToggledIntake = true;
                 intaking();
                 centerHold();
@@ -330,35 +368,26 @@ public class    Intake {
 
             if (state == States.OFF) {
                 topToShoot.setPower(0);
-                getRight();
-                if (pieceCount == 0) {
-                    botToTop.setPower(1);
-                    centerHold();
-                    intaking();
-                } else if (pieceCount == 1) {
-                    centerHold();
-                    botToTop.setPower(1);
-                } else if (pieceCount == 2) {
-                    centerHold();
-                    botToTop.setPower(0);
-                } else if (pieceCount == 3) {
-                    swapIntakeToggle();
-                }
+                //getRight();
+                botToTop.setPower(1);
+                centerHold();
+                intaking();
+//                if (pieceCount == 0) {
+//                    botToTop.setPower(1);
+//                    centerHold();
+//                    intaking();
+//                } else if (pieceCount == 1) {
+//                    centerHold();
+//                    botToTop.setPower(1);
+//                } else if (pieceCount == 2) {
+//                    centerHold();
+//                    botToTop.setPower(0);
+//                } else if (pieceCount == 3) {
+//                    swapIntakeToggle();
+//                }
             }
         } else if (isToggledPattern) {
             switch (state) {
-//                case SHOOTING:
-    //            if ((shooter.getShooterRPM(limelight.getDistance()) - shooter.getShooterCurrentRPM() < 100) &&
-    //                    shooterHood.getHoodTargetAngle(limelight.getDistance()) - shooterHood.getHoodCurrentAngle() < 5) {
-//                        isToggledIntake = true;
-//                        intaking();
-//                        centerHold();
-//                        botToTop.setPower(1);
-//                        topToShoot.setPower(1);
-//                        shooter.runShooter();
-//                        break;
-//                }
-
                 case NOTHING:
                     rightCount = 0;
                     wrongCount = 0;

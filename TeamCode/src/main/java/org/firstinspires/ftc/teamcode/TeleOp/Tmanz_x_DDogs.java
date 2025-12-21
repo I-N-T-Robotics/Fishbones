@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configurable
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TmanzOp", group = "teleOp")
-public class TmanzOp extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "Tmanz_X_DDogs", group = "teleOp")
+public class Tmanz_x_DDogs extends LinearOpMode {
 
     private DcMotorEx fl, fr, bl, br;
 
@@ -68,8 +68,8 @@ public class TmanzOp extends LinearOpMode {
 
         follower = Constants.createFollower(hardwareMap);
 //        follower.setStartingPose(new Pose(8.32258064516129, 8.322580645161283, 90));
-        //normal auto
-        follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 26.903225806451605, Math.toRadians(112)) : new Pose(56.70967741935483, 26.903225806451605, Math.toRadians(112)).mirror());
+        //DDogs auto
+        follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(33.871, 10.839, Math.toRadians(90)) : new Pose(33.871, 10.839, Math.toRadians(90)).mirror());
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 

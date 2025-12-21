@@ -9,11 +9,13 @@ import java.util.List;
 
 public class Limelight {
 
-    private Limelight3A limelight;
+    private final Limelight3A limelight;
     private LLResult result;
     private double dist;
-    private List<LLResultTypes.FiducialResult> fiducialResults;
     private int tagId;
+    private double xFromTag;
+    private double lastDist = 0;
+    private double lastTx = 0;
 
     public Limelight(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -21,13 +23,22 @@ public class Limelight {
         limelight.setPollRateHz(50);
         limelight.start();
 
-        this.result = limelight.getLatestResult();
+        update();
+    }
 
-        this.dist = result.getBotposeAvgDist();
-
-        this.fiducialResults = result.getFiducialResults();
-        for (LLResultTypes.FiducialResult fr : fiducialResults) {
-            this.tagId = fr.getFiducialId();
+    public void update() {
+        result = limelight.getLatestResult();
+        if (result != null && result.getFiducialResults() != null && !result.getFiducialResults().isEmpty()) {
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+            LLResultTypes.FiducialResult fr = fiducialResults.get(0); // first tag seen
+            tagId = fr.getFiducialId();
+            dist = result.getBotposeAvgDist();
+            xFromTag = result.getTx();
+            lastDist = dist;
+            lastTx = xFromTag;
+        } else {
+            tagId = -1; // no tag seen
+            dist = 0;   // or some safe default
         }
     }
 
@@ -37,5 +48,17 @@ public class Limelight {
 
     public int getTagID() {
         return tagId;
+    }
+
+    public double getxFromTag() {
+        return xFromTag;
+    }
+
+    public double getLastDist() {
+        return lastDist;
+    }
+
+    public double getLastTx() {
+        return lastTx;
     }
 }

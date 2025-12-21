@@ -240,7 +240,7 @@ public class SussyNineBalls extends ActionOpMode {
         shooter = new Shooter(hardwareMap);
         intake = new Intake(hardwareMap, shooter, new ShooterHood(hardwareMap), new Limelight(hardwareMap));
 
-        shooterActions = new ShooterActions(shooter);
+        shooterActions = new ShooterActions(shooter, new Limelight(hardwareMap), new ShooterHood(hardwareMap));
         intakeActions = new IntakeActions(intake);
         stopInsides = new ParallelAction(intakeActions.intakeA.stopIndex(), intakeActions.intakeA.stopFeed());
 
@@ -294,4 +294,3 @@ public class SussyNineBalls extends ActionOpMode {
 
     }
 }
-

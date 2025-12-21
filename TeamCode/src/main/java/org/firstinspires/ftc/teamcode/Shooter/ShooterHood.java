@@ -47,6 +47,10 @@ public class ShooterHood {
         return hood.getPosition();
     }
 
+    public void setHoodTestAngle(double testAngle) {
+        hood.setPosition(testAngle);
+    }
+
     public double getHoodTargetAngle(double distance) {
         return getHoodAngle(distance);
     }

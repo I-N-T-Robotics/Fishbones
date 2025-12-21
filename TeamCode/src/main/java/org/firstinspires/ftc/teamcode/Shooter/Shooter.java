@@ -115,7 +115,14 @@ public class Shooter {
 
     public void setShooterSpeed(double distance) {
         double rpmTarget = getShooterRPM(distance);
-        double ticksPerSec = (rpmTarget / 60.0) * ticksPerRev;
+        double ticksPerSec = (rpmTarget / 60.0) * 537.6;
+
+        shooterRight.setVelocity(ticksPerSec);
+        shooterLeft.setVelocity(ticksPerSec);
+    }
+
+    public void setShooterSpeedTest(double RPM) {
+        double ticksPerSec = (RPM / 60) * 537.6;
 
         shooterRight.setVelocity(ticksPerSec);
         shooterLeft.setVelocity(ticksPerSec);
