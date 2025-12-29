@@ -71,34 +71,40 @@ public class finalBlueAuto extends ActionOpMode {
     private int currentTaskIndex = 0;
     private int taskPhase = 0; // 0 = DRIVE, 1 = WAIT
 
+	public final double	 shoot112 = Math.toRadians( 112) ;
+	public final double	 shoot128 = Math.toRadians( 128) ;
+	public final double	 shoot143 = Math.toRadians( 143) ;
+	public final double  dir180 = Math.toRadians( 180) ;
+	public final double  dir270 = Math.toRadians( 270) ;
+
     private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(-36));
 
-    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, Math.toRadians(143));
-    private final Pose shootPreloadAssist = new Pose(76.64516129032258, 89.2258064516129);
+    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, shoot143 );
+    private final Pose shootPreloadCtl = new Pose(76.64516129032258, 89.2258064516129);
 
-    private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, Math.toRadians(180));
-    private final Pose intake1Assist = new Pose(49.5483870967742, 72.19354838709677);
+    private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, dir180 );
+    private final Pose intake1Ctl = new Pose(49.5483870967742, 72.19354838709677);
 
-    private final Pose shoot1Pose = new Pose(51.67741935483871, 82.06451612903226, Math.toRadians(128));
+    private final Pose shoot1Pose = new Pose(51.67741935483871, 82.06451612903226, shoot128 );
 
-    private final Pose intake2 = new Pose(14.516129032258064, 67.74193548387098, Math.toRadians(180));
-    private final Pose intake2Assist1 = new Pose(63.096774193548384, 64.45161290322581);
-    private final Pose intake2Assist2 = new Pose(26.516129032258064, 44.32258064516128);
+    private final Pose intake2 = new Pose(14.516129032258064, 67.74193548387098, dir180 );
+    private final Pose intake2Ctl1 = new Pose(63.096774193548384, 64.45161290322581);
+    private final Pose intake2Ctl2 = new Pose(26.516129032258064, 44.32258064516128);
 
-    private final Pose shoot2Pose = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
-    private final Pose shoot2Assist = new Pose(38.32258064516129, 52.25806451612903);
+    private final Pose shoot2Pose = new Pose(56.516129032258064, 16.645161290322584, shoot112 );
+    private final Pose shoot2Ctl = new Pose(38.32258064516129, 52.25806451612903);
 
-    private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, Math.toRadians(180));
-    private final Pose intake3Assist = new Pose(45.29032258064516, 36.38709677419355);
+    private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, dir180 );
+    private final Pose intake3Ctl = new Pose(45.29032258064516, 36.38709677419355);
 
-    private final Pose shoot3Pose = new Pose(56.516129032258064, 16.645161290322584, Math.toRadians(112));
-    private final Pose shoot3Assist = new Pose(45.29032258064516, 36.38709677419355);
+    private final Pose shoot3Pose = new Pose(56.516129032258064, 16.645161290322584, shoot112 );
+    private final Pose shoot3Ctl = new Pose(45.29032258064516, 36.38709677419355);
 
-    private final Pose intake4 = new Pose(8.70967741935484, 7.935483870967735, Math.toRadians(270));
-    private final Pose intake4Assist = new Pose(7.548387096774194, 33.09677419354839);
+    private final Pose intake4 = new Pose(8.70967741935484, 7.935483870967735, dir270 );
+    private final Pose intake4Ctl = new Pose(7.548387096774194, 33.09677419354839);
 
-    private final Pose shoot4Pose = new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112));
-    private final Pose shoot4Assist = new Pose(27.677419354838708, 26.903225806451605);
+    private final Pose shoot4Pose = new Pose(56.70967741935483, 16.451612903225808, shoot112 );
+    private final Pose shoot4Ctl = new Pose(27.677419354838708, 26.903225806451605);
 
     private Paths paths;
 
@@ -113,47 +119,47 @@ public class finalBlueAuto extends ActionOpMode {
         Paths(Follower follower) {
 
             preload = follower.pathBuilder()
-                    .addPath(new BezierCurve(start, shootPreloadAssist, shootPreload))
+                    .addPath(new BezierCurve(start, shootPreloadCtl, shootPreload))
                     .setLinearHeadingInterpolation(start.getHeading(), shootPreload.getHeading())
                     .build();
 
             intake1P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shootPreload, intake1Assist, intake1))
+                    .addPath(new BezierCurve(shootPreload, intake1Ctl, intake1))
                     .setLinearHeadingInterpolation(shootPreload.getHeading(), intake1.getHeading())
                     .build();
 
             shoot1P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake1, intake1Assist, shoot1Pose))
+                    .addPath(new BezierCurve(intake1, intake1Ctl, shoot1Pose))
                     .setLinearHeadingInterpolation(intake1.getHeading(), shoot1Pose.getHeading())
                     .build();
 
             intake2P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot1Pose, intake2Assist1, intake2Assist2, intake2))
+                    .addPath(new BezierCurve(shoot1Pose, intake2Ctl1, intake2Ctl2, intake2))
                     .setLinearHeadingInterpolation(shoot1Pose.getHeading(), intake2.getHeading())
                     .build();
 
             shoot2P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake2, shoot2Assist, shoot2Pose))
+                    .addPath(new BezierCurve(intake2, shoot2Ctl, shoot2Pose))
                     .setLinearHeadingInterpolation(intake2.getHeading(), shoot2Pose.getHeading())
                     .build();
 
             intake3P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot2Pose, intake3Assist, intake3))
+                    .addPath(new BezierCurve(shoot2Pose, intake3Ctl, intake3))
                     .setLinearHeadingInterpolation(shoot2Pose.getHeading(), intake3.getHeading())
                     .build();
 
             shoot3P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake3, shoot3Assist, shoot3Pose))
+                    .addPath(new BezierCurve(intake3, shoot3Ctl, shoot3Pose))
                     .setLinearHeadingInterpolation(intake3.getHeading(), shoot3Pose.getHeading())
                     .build();
 
             intake4P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot3Pose, intake4Assist, intake4))
+                    .addPath(new BezierCurve(shoot3Pose, intake4Ctl, intake4))
                     .setLinearHeadingInterpolation(shoot3Pose.getHeading(), intake4.getHeading())
                     .build();
 
             shoot4P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake4, shoot4Assist, shoot4Pose))
+                    .addPath(new BezierCurve(intake4, shoot4Ctl, shoot4Pose))
                     .setLinearHeadingInterpolation(intake4.getHeading(), shoot4Pose.getHeading())
                     .build();
         }
