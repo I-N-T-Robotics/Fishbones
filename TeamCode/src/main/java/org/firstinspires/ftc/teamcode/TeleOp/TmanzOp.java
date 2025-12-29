@@ -65,13 +65,13 @@ public class TmanzOp extends LinearOpMode {
         //normal auto
         follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 26.903225806451605, Math.toRadians(112)) : new Pose(56.70967741935483, 26.903225806451605, Math.toRadians(112)).mirror());
         follower.update();
+        intake.off();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         waitForStart();
 
         follower.startTeleopDrive(true);
 
-        intake.stateHandler();
         shooter.idle();
 
         while (opModeIsActive()) {
@@ -94,77 +94,11 @@ public class TmanzOp extends LinearOpMode {
 
             follower.update();
             telemetryM.update();
+			intake.update() ;
 
             if (gamepad1.start) {
                 gyro.resetPosAndIMU();
             }
-
-//            if (gamepad1.leftBumperWasPressed()) {
-//                intake.decreaseTestAngle();
-//            }
-//
-//            if (gamepad1.rightBumperWasPressed()) {
-//                intake.increaseTestAngle();
-//            }
-//
-//            if (gamepad1.aWasPressed()) {
-//                intake.decreaseTestRPM();
-//            }
-//
-//            if (gamepad1.xWasPressed()) {
-//                intake.increaseTestRPM();
-//            }
-
-//            if (gamepad1.y) {
-//                intake.swapPatternToggle();
-//            }
-
-//            if (gamepad1.y) {
-//                intake.startTopToShoot();
-//            }
-
-            if (gamepad1.bWasPressed()) {
-                intake.swapIntakeToggle();
-            }
-
-            if (gamepad1.xWasPressed()) {
-                intake.backIntakeEject();
-            }
-
-            //shoot no align
-            boolean shootingPressedForced = gamepad1.a;
-
-            if (shootingPressedForced) {
-                intake.stateBeforeShooting = intake.state;
-                intake.state = Intake.States.SHOOTING;
-            }
-
-            if ((intake.state == Intake.States.SHOOTING) && !shootingPressedForced) {
-                if (intake.stateBeforeShooting == Intake.States.OFF) {
-                    intake.state = Intake.States.OFF;
-                } else {
-                    intake.state = Intake.States.NOTHING;
-                }
-                shooter.setShooterSpeed(0);
-            }
-
-            //shoot align
-            boolean shootingPressed = gamepad1.y;
-
-            if (shootingPressed && isAligned()) {
-                intake.stateBeforeShooting = intake.state;
-                intake.state = Intake.States.SHOOTING;
-            }
-
-            if ((intake.state == Intake.States.SHOOTING) && !shootingPressed && !shootingPressedForced) {
-                if (intake.stateBeforeShooting == Intake.States.OFF) {
-                    intake.state = Intake.States.OFF;
-                } else {
-                    intake.state = Intake.States.NOTHING;
-                }
-                shooter.setShooterSpeed(0);
-            }
-            intake.stateHandler();
 
 			telemetry.addData("shooterPct", shooter.targetProgress());
             telemetry.addData("hootPct", shooter.hood.progress());

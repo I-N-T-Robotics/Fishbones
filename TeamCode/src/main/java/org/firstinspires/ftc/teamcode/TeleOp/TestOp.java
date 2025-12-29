@@ -51,7 +51,7 @@ public class TestOp extends LinearOpMode {
 
         waitForStart();
 
-        intake.stateHandler();
+        intake.off();
 
         while (opModeIsActive()) {
             double y = -gamepad1.left_stick_y;
@@ -63,33 +63,12 @@ public class TestOp extends LinearOpMode {
                 gyro.resetPosAndIMU();
             }
 
-            if (gamepad1.y) {
-                intake.centerHold();
-                intake.frontIntake();
-                intake.startBotToTop();
-                intake.startTopToShoot();
-                shooter.runShooter();
-            } else {
-
-            }
-
-            if (gamepad1.x) {
-                shooter.stop();
-            }
-
             if (gamepad1.a) {
-                intake.startBotToTop();
-                intake.centerHold();
-                intake.backIntake();
-            } else {
-
+                intake.enable();
             }
 
             if (gamepad1.b) {
-                intake.centerHold();
-                intake.backIntake();
-            } else {
-
+                intake.off();
             }
 
 			telemetry.addData("shooterPct", shooter.targetProgress());
@@ -104,8 +83,6 @@ public class TestOp extends LinearOpMode {
 
     public void drive(double y, double x, double rx) {
         double botHeading = yaw;
-
-        x = x * 1.1;
 
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);

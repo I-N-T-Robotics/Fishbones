@@ -65,8 +65,8 @@ public class TmanBasicOp extends LinearOpMode {
 
         follower.startTeleopDrive(true);
 
-        intake.stateHandler();
-        shooter.idle();
+        intake.off();
+        shooter.stop();
 
         while (opModeIsActive()) {
             follower.setTeleOpDrive(
@@ -78,39 +78,16 @@ public class TmanBasicOp extends LinearOpMode {
 
             follower.update();
             telemetryM.update();
+			intake.update() ;
 
             if (gamepad1.start) {
                 gyro.resetPosAndIMU();
             }
 
-            if (gamepad1.y) {
-                intake.swapPatternToggle();
-            }
+            if ( gamepad1.b ) 			{ intake.enable(); }
+            if ( gamepad1.a ) 			{ intake.shoot() ; }
+			if ( gamepad1.dpad_down ) 	{ intake.off() ; }
 
-            if (gamepad1.y) {
-                intake.startTopToShoot();
-            }
-
-            if (gamepad1.b) {
-                intake.swapIntakeToggle();
-            }
-
-            boolean shootingPressed = gamepad1.a;
-
-            if (shootingPressed) {
-                intake.stateBeforeShooting = intake.state;
-                intake.state = Intake.States.SHOOTING;
-            }
-
-            if ((intake.state == Intake.States.SHOOTING) && !shootingPressed) {
-                if (intake.stateBeforeShooting == Intake.States.OFF) {
-                    intake.state = Intake.States.OFF;
-                } else {
-                    intake.state = Intake.States.NOTHING;
-                }
-                shooter.setShooterSpeed(0);
-            }
-            intake.stateHandler();
 
 			telemetry.addData("shooterPct", shooter.targetProgress());
             telemetry.addData("hootPct", shooter.hood.progress());
