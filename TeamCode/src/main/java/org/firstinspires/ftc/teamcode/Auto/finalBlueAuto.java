@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
@@ -11,9 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Util.actions.ActionOpMode;
-import org.firstinspires.ftc.teamcode.Util.actions.IntakeActions;
-import org.firstinspires.ftc.teamcode.Util.actions.ShooterActions;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -23,38 +18,73 @@ import java.util.List;
 @Autonomous(name = "finalBlueAuto", group = "Autos")
 public class finalBlueAuto extends ActionOpMode {
 
-    private static class WaitAction {
-        double triggerTime;
-        Action action;
-        boolean triggered = false;
+	private static class	MoveTask {
+		private PathChain 	_path ;
+		private double 		_wait ;
+		private int			_state ;
 
-        WaitAction(double triggerTime, Action action) {
-            this.triggerTime = triggerTime;
-            this.action = action;
-        }
-    }
+		public boolean		done ;
 
-    private static class PathChainTask {
-        PathChain path;
-        double waitTime;
-        List<WaitAction> waitActions = new ArrayList<>();
+		MoveTask( PathChain path, double wait )
+		{
+			_path = path ;
+			_wait = wait ;
+			_state = 0 ;
+			done = false ;
+		}
 
-        PathChainTask(PathChain path, double waitTime) {
-            this.path = path;
-            this.waitTime = waitTime;
-        }
+		public void	update()
+		{
+			switch ( _state )
+			{
+				case 0:
+					follower.followPath( _path, true ) ;
+					_state= 1 ;
+					break ;
+				case 1:
+					if ( ! ! ! follower.isBusy() ) {
+						pathtimer.resetTimer() ;
+						_state = 2 ;
+					}
+					break ;	
+				case 2:
+					if ( pathTimer.getElapsedTimeSeconds() > _wait ) {
+						_wait= 0. ;
+						_state= 3 ;
+					}
+					break ;
+				case 3:
+					act() ;
+					_state = 4 ;
+					break ;
+				case 4:
+					if ( done() ) {
+						_state = 5 ;
+					}
+				case 5:
+					if ( _wait > 0. ) {
+						pathtimer.resetTimer() ;
+						_state = 6 ;
+					}
+					else {
+						_state = 7 ;
+					}
+					break ;
+				case 6:
+					if ( pathTimer.getElapsedTimeSeconds() > _wait ) {
+                        _wait= 0. ;
+                        _state= 7 ;
+                    }
+					break ;
+				case 7:
+					done = true ;
+					break ;
+			}
+		}
 
-        PathChainTask addWaitAction(double triggerTime, Action action) {
-            waitActions.add(new WaitAction(triggerTime, action));
-            return this;
-        }
-
-        void reset() {
-            for (WaitAction wa : waitActions) {
-                wa.triggered = false;
-            }
-        }
-    }
+		public void	act() { }
+		public bool done() { return true ; }
+	}
 
     private static final double PATH_COMPLETION_T = 0.985;
 
@@ -63,10 +93,7 @@ public class finalBlueAuto extends ActionOpMode {
 
     private Intake intake;
     private Shooter shooter;
-    private IntakeActions intakeActions;
-    private ShooterActions shooterActions;
 
-    private final List<PathChainTask> tasks = new ArrayList<>();
     private int currentTaskIndex = 0;
     private int taskPhase = 0; // 0 = DRIVE, 1 = WAIT
 
@@ -105,162 +132,93 @@ public class finalBlueAuto extends ActionOpMode {
     private final Pose shoot4Pose = new Pose(56.70967741935483, 16.451612903225808, shoot112 );
     private final Pose shoot4Ctl = new Pose(27.677419354838708, 26.903225806451605);
 
-    private Paths paths;
+	private static class	ShootTask extends MoveTask
+	{
+		ShootTask( PathChain path ) { super( path, 3. ) ; }
+		public void	act() { intake.shoot() ;  _wait= 3. ; }
+		public boolean done() {  return intake.enable() ; }
+	}
 
-    public class Paths {
+	private static class	IntakeTask extends MoveTask
+	{
+		IntakeTask( PathChain path ) { super( path, 1.5 ) ; }
+		public void act() { intake.enable() ;  _wait= 1. ; }
+		public boolean done() { return true ; }
+	}
 
-        public PathChain preload;
-        public PathChain intake1P, shoot1P;
-        public PathChain intake2P, shoot2P;
-        public PathChain intake3P, shoot3P;
-        public PathChain intake4P, shoot4P;
+	public class	ChainBuilder
+	{
+		private  Follower   _fol ;
+		private  Pose  _cur ;
 
-        Paths(Follower follower) {
+		ChainBuilder( Follower fol, Pose pose )
+		{
+			_fol = fol ;
+			_cur = pose ;
+		}
 
-            preload = follower.pathBuilder()
-                    .addPath(new BezierCurve(start, shootPreloadCtl, shootPreload))
-                    .setLinearHeadingInterpolation(start.getHeading(), shootPreload.getHeading())
-                    .build();
+		public PathChain	step( Pose ctl, Pose end )
+		{
+			Pose old = _cur ;
+			_cur = end ;
 
-            intake1P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shootPreload, intake1Ctl, intake1))
-                    .setLinearHeadingInterpolation(shootPreload.getHeading(), intake1.getHeading())
-                    .build();
+			return follower.pathBuilder()
+					.addPath( new BezierCurve( old, ctl, _cur ))
+					.setLinearHeadingInterpolation( old.getHeading(), _cur.getHeading())
+					.build() ;
+		}
+		public PathChain	step( Pose ctl1, Post ctl2, Pose end )
+		{
+			Pose old = _cur ;
+			_cur = end ;
 
-            shoot1P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake1, intake1Ctl, shoot1Pose))
-                    .setLinearHeadingInterpolation(intake1.getHeading(), shoot1Pose.getHeading())
-                    .build();
+			return follower.pathBuilder()
+					.addPath( new BezierCurve( old, ctl1, ctl2, _cur ))
+					.setLinearHeadingInterpolation( old.getHeading(), _cur.getHeading())
+					.build() ;
+		}
+	}
 
-            intake2P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot1Pose, intake2Ctl1, intake2Ctl2, intake2))
-                    .setLinearHeadingInterpolation(shoot1Pose.getHeading(), intake2.getHeading())
-                    .build();
+    public class Steps {
 
-            shoot2P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake2, shoot2Ctl, shoot2Pose))
-                    .setLinearHeadingInterpolation(intake2.getHeading(), shoot2Pose.getHeading())
-                    .build();
+		public	ChainBuilder	build ;
+		public  int				step ;
 
-            intake3P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot2Pose, intake3Ctl, intake3))
-                    .setLinearHeadingInterpolation(shoot2Pose.getHeading(), intake3.getHeading())
-                    .build();
+		public void		shoot( PathChain path ) { tasks.add( new ShootTask( path ) ; }
+		public void		intake( PathChain path ) { tasks.add( new IntakeTask( path ) ; }
 
-            shoot3P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake3, shoot3Ctl, shoot3Pose))
-                    .setLinearHeadingInterpolation(intake3.getHeading(), shoot3Pose.getHeading())
-                    .build();
+        Steps(Follower follower) {
 
-            intake4P = follower.pathBuilder()
-                    .addPath(new BezierCurve(shoot3Pose, intake4Ctl, intake4))
-                    .setLinearHeadingInterpolation(shoot3Pose.getHeading(), intake4.getHeading())
-                    .build();
+			build = new ChainBuilder( foll, start ) ;
+			step = 0 ;
 
-            shoot4P = follower.pathBuilder()
-                    .addPath(new BezierCurve(intake4, shoot4Ctl, shoot4Pose))
-                    .setLinearHeadingInterpolation(intake4.getHeading(), shoot4Pose.getHeading())
-                    .build();
+			shoot( 	build.step( shootPreloadCtl, shootPreload )) ;
+			intake( build.step( intake1Ctl, intake1 )) ;
+			shoot( 	build.step( intake1Ctl, shoot1Pose )) ;
+			intake( build.step( intake2Ctl1, intake2Ctl2, intake2 )) ;
+            shoot( 	build.step( shoot2Ctl, shoot2Pose)) ;
+            intake( build.step( intake3Ctl, intake3)) ;
+            shoot( 	build.step( shoot3Ctl, shoot3Pose)) ;
+            intake( build.step( intake4Ctl, intake4 )) ;
+            shoot( 	build.step( shoot4Ctl, shoot4Pose )) ;
         }
+
+		private final List<MoveTask>	tasks ;
+
+		public MoveTask		update()
+		{
+			if ( step > tasks.size() ) {
+				return ;
+			}
+
+			MoveTask task = tasks.get( step ) ;
+
+			task.update() ;
+			if ( task.done ) { step += 1 ; }
+		}
     }
 
-    private void buildTaskList() {
-        tasks.clear();
-
-        tasks.add(new PathChainTask(paths.preload, 3.0)
-                .addWaitAction(0.0, shootRamp())
-                .addWaitAction(0.0, intakeAction())
-                .addWaitAction(1, intakeActions.intakeA.feed()));
-
-        tasks.add(new PathChainTask(paths.intake1P, 0.4)
-                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
-                .addWaitAction(0.0, intakeAction()));
-
-        tasks.add(new PathChainTask(paths.shoot1P, 3.0)
-                .addWaitAction(0.0, shootRamp())
-                .addWaitAction(0.0, intakeAction())
-                .addWaitAction(1, intakeActions.intakeA.feed()));
-
-        tasks.add(new PathChainTask(paths.intake2P, 1) //clear balls
-                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
-                .addWaitAction(0.0, intakeAction()));
-
-        tasks.add(new PathChainTask(paths.shoot2P, 3.5)
-                .addWaitAction(0.0, shootRamp())
-                .addWaitAction(0.0, intakeAction())
-                .addWaitAction(1.5, intakeActions.intakeA.feed()));
-
-        tasks.add(new PathChainTask(paths.intake3P, 0.4)
-                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
-                .addWaitAction(0.0, intakeAction()));
-
-        tasks.add(new PathChainTask(paths.shoot3P, 3.0)
-                .addWaitAction(0.0, shootRamp())
-                .addWaitAction(0.0, intakeAction())
-                .addWaitAction(1, intakeActions.intakeA.feed()));
-
-        tasks.add(new PathChainTask(paths.intake4P, 0.4)
-                .addWaitAction(0.0, intakeActions.intakeA.stopFeed())
-                .addWaitAction(0.0, intakeAction()));
-
-        tasks.add(new PathChainTask(paths.shoot4P, 3.0)
-                .addWaitAction(0.0, shootRamp())
-                .addWaitAction(0.0, intakeAction())
-                .addWaitAction(1, intakeActions.intakeA.feed()));
-    }
-
-    private Action shootRamp() {
-        return new ParallelAction(
-                shooterActions.shooterA.shoot(),
-                shooterActions.shooterA.hoodAngle()
-        );
-    }
-
-    private Action intakeAction() {
-        return new ParallelAction(
-                intakeActions.intakeA.forwardIntake(),
-                intakeActions.intakeA.index(),
-                intakeActions.intakeA.holdNuts()
-        );
-    }
-
-    private void runTasks() {
-        if (currentTaskIndex >= tasks.size()) return;
-
-        PathChainTask task = tasks.get(currentTaskIndex);
-
-        switch (taskPhase) {
-
-            case 0: // DRIVE
-                if (!follower.isBusy()) {
-                    follower.followPath(task.path, true);
-                    pathTimer.resetTimer();
-                    task.reset();
-                }
-
-                if (follower.getCurrentTValue() >= PATH_COMPLETION_T) {
-                    pathTimer.resetTimer();
-                    taskPhase = 1;
-                }
-                break;
-
-            case 1: // WAIT
-                double t = pathTimer.getElapsedTimeSeconds();
-
-                for (WaitAction wa : task.waitActions) {
-                    if (!wa.triggered && t >= wa.triggerTime) {
-                        run(wa.action);
-                        wa.triggered = true;
-                    }
-                }
-
-                if (t >= task.waitTime) {
-                    currentTaskIndex++;
-                    taskPhase = 0;
-                }
-                break;
-        }
-    }
+	public Steps steps ;
 
     @Override
     public void init() {
@@ -270,14 +228,11 @@ public class finalBlueAuto extends ActionOpMode {
         shooter = new Shooter(hardwareMap);
         intake = new Intake(hardwareMap, shooter ) ;
 
-        shooterActions = new ShooterActions(shooter) ;
-        intakeActions = new IntakeActions(intake);
-
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(start);
 
         paths = new Paths(follower);
-        buildTaskList();
+        steps = new Steps( follower ) ;
     }
 
     @Override
@@ -291,6 +246,6 @@ public class finalBlueAuto extends ActionOpMode {
     public void loop() {
         super.loop();
         follower.update();
-        runTasks();
+        steps.update() ;
     }
 }

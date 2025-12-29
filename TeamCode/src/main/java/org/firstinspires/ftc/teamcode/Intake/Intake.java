@@ -21,7 +21,7 @@ public class    Intake {
 
     private final DcMotorEx m_intake, m_outake ;
 
-    private ElapsedTime timer = new ElapsedTime();
+    private ElapsedTime timer= new ElapsedTime();
 
     private Shooter shooter;
     
@@ -31,36 +31,44 @@ public class    Intake {
     public enum States {
         OFF,
         INTAKE,
+		PREP,
         SHOOT,
     }
 
     public States state;
-    public States previousState = States.OFF;
-    public States stateBeforeShooting = States.OFF;
-
 
     public Intake(HardwareMap hardwareMap, Shooter shooter ) {
-        this.shooter = shooter;
+        this.shooter= shooter;
 
-        s_intake = hardwareMap.get(CRServo.class, "sin");
+        s_intake= hardwareMap.get(CRServo.class, "sin");
 
-        m_intake = hardwareMap.get(DcMotorEx.class, "min");
-        m_outake = hardwareMap.get(DcMotorEx.class, "mout");
+        m_intake= hardwareMap.get(DcMotorEx.class, "min");
+        m_outake= hardwareMap.get(DcMotorEx.class, "mou");
 
         s_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         m_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         m_outake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        state = States.OFF;
+        state= States.OFF;
     }
 
     public void enable()
         s_intake.setPower( 1) ;
         m_intake.setPower( 1) ;
+		m_outake.setPower( 0) ;
+		state= INTAKE ;
     }
+
 	public void shoot( )
 	{
-        m_outake.setPower( 1) ;
+		if ( INTAKE == state ) {
+			shooter.target() ;
+			state= PREP ;
+		}
+
+		if ( SHOOT == state ) {
+			enable() ;
+		}
 	}
 
 	public void	off()
@@ -68,10 +76,21 @@ public class    Intake {
         s_intake.setPower( 0) ;
         m_intake.setPower( 0) ;
 		m_outake.setPower( 0) ;
+		state= OFF ;
 	}
 
-    public void stateHandler() {
+    public void update() {
+		if ( PREP ) {
+			if ( ! shooter.atTarget() ) { return ; }
+
+			m_outake.setPower( 1) ;
+			state= SHOOT ;
+		}
     }
+
+	public boolean stable()
+	{
+		return SHOOT == state ;
+	}
 }
-//change all argb ranges
-//override for less than 3 balls picked up in auto
+
