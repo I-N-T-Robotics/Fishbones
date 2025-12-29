@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.Util.actions.ActionOpMode;
 import org.firstinspires.ftc.teamcode.Util.actions.IntakeActions;
 import org.firstinspires.ftc.teamcode.Util.actions.ShooterActions;
@@ -269,9 +268,9 @@ public class finalBlueAuto extends ActionOpMode {
         pathTimer = new Timer();
 
         shooter = new Shooter(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, new ShooterHood(hardwareMap), new Limelight(hardwareMap));
+        intake = new Intake(hardwareMap, shooter ) ;
 
-        shooterActions = new ShooterActions(shooter, new Limelight(hardwareMap), new ShooterHood(hardwareMap));
+        shooterActions = new ShooterActions(shooter) ;
         intakeActions = new IntakeActions(intake);
 
         follower = Constants.createFollower(hardwareMap);

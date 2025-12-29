@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
-import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Arrays;
@@ -30,8 +28,6 @@ public class TmanzOp extends LinearOpMode {
     private GoBildaPinpointDriver gyro;
     private Intake intake;
     private Shooter shooter;
-    private ShooterHood shooterHood;
-    private Limelight limelight;
 
     private Follower follower;
     public static Pose startDrivePose;
@@ -62,9 +58,7 @@ public class TmanzOp extends LinearOpMode {
         });
 
         shooter = new Shooter(hardwareMap);
-        shooterHood = new ShooterHood(hardwareMap);
-        limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter ) ;
 
         follower = Constants.createFollower(hardwareMap);
 //        follower.setStartingPose(new Pose(8.32258064516129, 8.322580645161283, 90));
@@ -143,9 +137,6 @@ public class TmanzOp extends LinearOpMode {
             if (shootingPressedForced) {
                 intake.stateBeforeShooting = intake.state;
                 intake.state = Intake.States.SHOOTING;
-//                shooter.setShooterSpeed(limelight.getLastDist());
-//                shooterHood.setHoodPosition(limelight.getLastDist());
-//                shooter.runShooter();
             }
 
             if ((intake.state == Intake.States.SHOOTING) && !shootingPressedForced) {
@@ -163,9 +154,6 @@ public class TmanzOp extends LinearOpMode {
             if (shootingPressed && isAligned()) {
                 intake.stateBeforeShooting = intake.state;
                 intake.state = Intake.States.SHOOTING;
-//                shooter.setShooterSpeed(limelight.getLastDist());
-//                shooterHood.setHoodPosition(limelight.getLastDist());
-//                shooter.runShooter();
             }
 
             if ((intake.state == Intake.States.SHOOTING) && !shootingPressed && !shootingPressedForced) {
@@ -178,16 +166,13 @@ public class TmanzOp extends LinearOpMode {
             }
             intake.stateHandler();
 
-            telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
-            telemetry.addData("distance", limelight.getDistance());
-            telemetry.addData("lastDistance", limelight.getLastDist());
+			telemetry.addData("shooterPct", shooter.targetProgress());
+            telemetry.addData("hootPct", shooter.hood.progress());
+            telemetry.addData("distance", shooter.lime.getDistance());
+
             telemetry.addData("mode", intake.state);
             telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));
             telemetry.addData("shooting", shootingPressed);
-            telemetry.addData("testRPM", intake.getTestRPM());
-            telemetry.addData("testHoodAngle", intake.getHoodTestAngle());
-            telemetry.addData("botToTopShoot", intake.getbotToTopSpeed());
             telemetry.addData("tx", limelight.getxFromTag());
             telemetry.addData("lastTx", limelight.getLastTx());
             telemetry.addData("aligned", isAligned());

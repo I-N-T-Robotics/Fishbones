@@ -9,54 +9,9 @@ import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Util.LinearRegression;
 
 import edu.wpi.first.math.geometry.Translation2d;
-//
-//
-//public class Shooter {
-//
-//    private DcMotorEx shooterRight, shooterLeft;
-//    private LinearRegression rpm = null;
-//
-//    public Shooter(HardwareMap hardwareMap) {
-//        shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
-//        shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
-//
-//        shooterRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-//        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//
-//        shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-//    }
-//
-//    public void rpmRegression(double[] distances, double[] shooterSpeeds) {
-//        if (distances.length != shooterSpeeds.length) {
-//            throw new IllegalArgumentException("Shooter array != distance array");
-//        }
-//
-//        Translation2d[] rpmPoints = new Translation2d[shooterSpeeds.length];
-//
-//        for (int i = 0; i < shooterSpeeds.length; i++) {
-//            rpmPoints[i] = new Translation2d(distances[i], shooterSpeeds[i]);
-//        }
-//
-//        rpm = new LinearRegression(rpmPoints);
-//    }
-//
-//    public double getShooterRPM(double distance) {
-//        return rpm.calculatePoint(distance);
-//    }
-//
-//    public double getShooterSpeed() {
-//        return shooterRight.getVelocity();
-//    }
-//
-//    public double getShooterTargetSpeed(double distance) {
-//        return getShooterRPM(distance);
-//    }
-//
-//    public void setShooterSpeed(double distance) {
-//        shooterRight.setVelocity(getShooterRPM(distance));
-//        shooterLeft.setVelocity(getShooterRPM(distance));
-//    }
-//}
+
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood ;
+import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 public class Shooter {
 
@@ -68,12 +23,19 @@ public class Shooter {
     private double[] settingsDistance;
     private double[] settingsShooterSpeeds;
 
-    private static final double GEAR_RATIO = 2.0; // output / motor
+	private double  rightTarget = 0 ;
+
     private static final double IDLE_POWER = 0.1;
+	private static final double	TICK_RATIO = 537.6 ;
+
+	public ShooterHood	hood ;
+	public Limelight	lime ;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
+		hood         = new ShooterHood( hardwareMap ) ;
+		lime		 = new Limelight( hardwareMap ) ;
 
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -108,46 +70,45 @@ public class Shooter {
         rpm = new LinearRegression(points);
     }
 
-    public double getShooterRPM(double distance) {
-        if (rpm == null) return 0;
-        return rpm.calculatePoint(distance);
-    }
+	public void	target()
+	{
+		double dist = limelight.getLastDist() ;
 
-    public void setShooterSpeed(double distance) {
-        double rpmTarget = getShooterRPM(distance);
-        double ticksPerSec = (rpmTarget / 60.0) * 537.6;
+		targetDistance( dist ) ;
+		hood.targetDistance( dist ) ;
+	}
 
-        shooterRight.setVelocity(ticksPerSec);
-        shooterLeft.setVelocity(ticksPerSec);
-    }
+	public void	targetDistance( double distance ) {
+		double rate = getShooterRPM ( distance ) * TICK_RATIO / 60. ;
 
-    public void setShooterSpeedTest(double RPM) {
-        double ticksPerSec = (RPM / 60) * 537.6;
+		setRate( rate ) ;
+	}
 
-        shooterRight.setVelocity(ticksPerSec);
-        shooterLeft.setVelocity(ticksPerSec);
-    }
+	public void	targetSpeed( double speed )
+	{
+		double rate = speed * TICK_RATIO / 60. ;
+		setRate( rate ) ;
+	}
 
-//    public void setShooterSpeed(int x) {
-//        double ticksPerSec = (x / 60.0) * ticksPerRev;
-//        shooterRight.setVelocity(ticksPerSec);
-//        shooterLeft.setVelocity(ticksPerSec);
-//    }
+	public void	setRate( double rate )
+	{
+        shooterRight.setVelocity(rate);
+        shooterLeft.setVelocity(rate);
+		rightTarget = rate ;
+	}
 
     public void runShooter() {
         shooterRight.setPower(1);
         shooterLeft.setPower(1);
+		rightTarget = 0 ;
     }
 
-    public void setShooter(double speed) {
-        shooterRight.setPower(speed);
-        shooterLeft.setPower(speed);
-    }
-
-    public double getShooterCurrentRPM() {
-        double motorRPM = shooterRight.getVelocity() * 60.0 / 537.6;
-        return motorRPM * GEAR_RATIO;
-    }
+	public boolean	atTarget() {
+		return hood.atAngle() && shooterRight.getVelocity() >= rightTarget ;
+	}
+	public double   targetProgress() {
+		return ( rightTarget > 0. ) ? shooterRight.getVelocity() / rightTarget : 1. ;
+	}
 
     public void stop() {
         shooterRight.setPower(0);

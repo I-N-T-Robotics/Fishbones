@@ -16,6 +16,8 @@ public class ShooterHood {
     private double[] settingsDistance;
     private double[] settingsHoodAngles;
 
+	private double	 _target = 0 ;
+
     public ShooterHood(HardwareMap hardwareMap) {
         hood = hardwareMap.get(Servo.class, "hood");
 
@@ -39,25 +41,28 @@ public class ShooterHood {
         hoodAngle = new LinearRegression(hoodPoints);
     }
 
-    public double getHoodAngle(double distance) {
-        return hoodAngle.calculatePoint(distance);
-    }
+	public	void	targetDistance( double distance )
+	{
+		double pwd =
+			Math.max( 0., Math.min( hoodAngle.calculatePoint( distance ), 1.)) ;
+		targetPort( pwd ) ;
+	}
 
-    public double getHoodCurrentAngle() {
-        return hood.getPosition();
-    }
+	public	void	targetPort( double pwd )
+	{
+		hood.setPosition( pwd ) ;
+		_target = pwd ;
+	}
 
-    public void setHoodTestAngle(double testAngle) {
-        hood.setPosition(testAngle);
-    }
-
-    public double getHoodTargetAngle(double distance) {
-        return getHoodAngle(distance);
-    }
-
-    public void setHoodPosition(double distance) {
-        double pos = getHoodAngle(distance);
-        pos = Math.max(0.0, Math.min(1.0, pos));
-        hood.setPosition(pos);
-    }
+	public boolean	atAngle()
+	{
+		double delt = Math.abs( hood.getPosition() - _target ) ;
+		return delt < 0.04 ;
+	}
+	public	double	progress()
+	{
+		double delt = Math.abs( hood.getPosition() - _target ) ;
+		return 1 - delt ;
+	}
 }
+

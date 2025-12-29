@@ -13,8 +13,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
-import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Arrays;
@@ -23,8 +21,6 @@ import java.util.List;
 public class TestRPM extends LinearOpMode {
     private Intake intake;
     private Shooter shooter;
-    private ShooterHood shooterHood;
-    private Limelight limelight;
 
     private TelemetryManager telemetryM;
 
@@ -32,9 +28,7 @@ public class TestRPM extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         shooter = new Shooter(hardwareMap);
-        shooterHood = new ShooterHood(hardwareMap);
-        limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter) ;
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
@@ -59,11 +53,9 @@ public class TestRPM extends LinearOpMode {
 
             boolean shootingPressed = gamepad1.a;
 
-
-
-            telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
-            telemetry.addData("distance", limelight.getDistance());
+			telemetry.addData("shooterPct", shooter.targetProgress());
+            telemetry.addData("hootPct", shooter.hood.progress());
+            telemetry.addData("distance", shooter.lime.getDistance());
             telemetry.addData("mode", intake.state);
             telemetry.addData("shooting", shootingPressed);
             telemetry.update();

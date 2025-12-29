@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
-import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Arrays;
@@ -30,8 +28,6 @@ public class TmanBasicOp extends LinearOpMode {
     private GoBildaPinpointDriver gyro;
     private Intake intake;
     private Shooter shooter;
-    private ShooterHood shooterHood;
-    private Limelight limelight;
 
     private Follower follower;
     public static Pose startDrivePose;
@@ -58,9 +54,7 @@ public class TmanBasicOp extends LinearOpMode {
         });
 
         shooter = new Shooter(hardwareMap);
-        shooterHood = new ShooterHood(hardwareMap);
-        limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter) ;
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(limelight.getTagID() == 20 ? new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)) : new Pose(56.70967741935483, 16.451612903225808, Math.toRadians(112)).mirror());
@@ -106,9 +100,6 @@ public class TmanBasicOp extends LinearOpMode {
             if (shootingPressed) {
                 intake.stateBeforeShooting = intake.state;
                 intake.state = Intake.States.SHOOTING;
-//                shooter.setShooterSpeed(limelight.getDistance());
-//                shooterHood.setHoodPosition(limelight.getDistance());
-//                shooter.runShooter();
             }
 
             if ((intake.state == Intake.States.SHOOTING) && !shootingPressed) {
@@ -121,9 +112,10 @@ public class TmanBasicOp extends LinearOpMode {
             }
             intake.stateHandler();
 
-            telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
-            telemetry.addData("distance", limelight.getDistance());
+			telemetry.addData("shooterPct", shooter.targetProgress());
+            telemetry.addData("hootPct", shooter.hood.progress());
+            telemetry.addData("distance", shooter.lime.getDistance());
+
             telemetry.addData("mode", intake.state);
             telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));
             telemetry.addData("shooting", shootingPressed);

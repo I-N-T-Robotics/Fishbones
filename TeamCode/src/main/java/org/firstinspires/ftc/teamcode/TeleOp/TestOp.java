@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
-import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,8 +21,6 @@ public class TestOp extends LinearOpMode {
     private GoBildaPinpointDriver gyro;
     private Intake intake;
     private Shooter shooter;
-    private ShooterHood shooterHood;
-    private Limelight limelight;
 
     public volatile double yaw;
 
@@ -51,9 +47,7 @@ public class TestOp extends LinearOpMode {
         });
 
         shooter = new Shooter(hardwareMap);
-        shooterHood = new ShooterHood(hardwareMap);
-        limelight = new Limelight(hardwareMap);
-        intake = new Intake(hardwareMap, shooter, shooterHood, limelight);
+        intake = new Intake(hardwareMap, shooter );
 
         waitForStart();
 
@@ -98,9 +92,9 @@ public class TestOp extends LinearOpMode {
 
             }
 
-            telemetry.addData("shooterSpeed", shooter.getShooterCurrentRPM());
-            telemetry.addData("shooterHoodAngle", shooterHood.getHoodCurrentAngle());
-            telemetry.addData("distance", limelight.getDistance());
+			telemetry.addData("shooterPct", shooter.targetProgress());
+            telemetry.addData("hootPct", shooter.hood.progress());
+            telemetry.addData("distance", shooter.lime.getDistance());
             telemetry.addData("mode", intake.state);
             telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));
             telemetry.update();
