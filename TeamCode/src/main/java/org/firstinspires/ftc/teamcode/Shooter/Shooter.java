@@ -23,19 +23,19 @@ public class Shooter {
     private double[] settingsDistance;
     private double[] settingsShooterSpeeds;
 
-	private double  rightTarget = 0 ;
+    private double  rightTarget = 0 ;
 
     private static final double IDLE_POWER = 0.1;
-	private static final double	TICK_RATIO = 537.6 ;
+    private static final double    TICK_RATIO = 537.6 ;
 
-	public ShooterHood	hood ;
-	public Limelight	lime ;
+    public ShooterHood hood ;
+    public Limelight   lime ;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
-		hood         = new ShooterHood( hardwareMap ) ;
-		lime		 = new Limelight( hardwareMap ) ;
+        hood         = new ShooterHood( hardwareMap ) ;
+        lime       = new Limelight( hardwareMap ) ;
 
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -70,45 +70,50 @@ public class Shooter {
         rpm = new LinearRegression(points);
     }
 
-	public void	target()
-	{
-		double dist = limelight.getLastDist() ;
+    public double getShooterRPM(double distance) {
+        if (rpm == null) return 0;
+        return rpm.calculatePoint(distance);
+    }
 
-		targetDistance( dist ) ;
-		hood.targetDistance( dist ) ;
-	}
+    public void    target()
+    {
+        double dist = lime.getLastDist() ;
 
-	public void	targetDistance( double distance ) {
-		double rate = getShooterRPM ( distance ) * TICK_RATIO / 60. ;
+        targetDistance( dist ) ;
+        hood.targetDistance( dist ) ;
+    }
 
-		setRate( rate ) ;
-	}
+    public void    targetDistance( double distance ) {
+        double rate = getShooterRPM ( distance ) * TICK_RATIO / 60. ;
 
-	public void	targetSpeed( double speed )
-	{
-		double rate = speed * TICK_RATIO / 60. ;
-		setRate( rate ) ;
-	}
+        setRate( rate ) ;
+    }
 
-	public void	setRate( double rate )
-	{
+    public void    targetSpeed( double speed )
+    {
+        double rate = speed * TICK_RATIO / 60. ;
+        setRate( rate ) ;
+    }
+
+    public void    setRate( double rate )
+    {
         shooterRight.setVelocity(rate);
         shooterLeft.setVelocity(rate);
-		rightTarget = rate ;
-	}
+        rightTarget = rate ;
+    }
 
     public void runShooter() {
         shooterRight.setPower(1);
         shooterLeft.setPower(1);
-		rightTarget = 0 ;
+        rightTarget = 0 ;
     }
 
-	public boolean	atTarget() {
-		return hood.atAngle() && shooterRight.getVelocity() >= rightTarget ;
-	}
-	public double   targetProgress() {
-		return ( rightTarget > 0. ) ? shooterRight.getVelocity() / rightTarget : 1. ;
-	}
+    public boolean atTarget() {
+        return hood.atAngle() && shooterRight.getVelocity() >= rightTarget ;
+    }
+    public double   targetProgress() {
+        return ( rightTarget > 0. ) ? shooterRight.getVelocity() / rightTarget : 1. ;
+    }
 
     public void stop() {
         shooterRight.setPower(0);

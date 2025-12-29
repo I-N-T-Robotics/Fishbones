@@ -1,37 +1,30 @@
 package org.firstinspires.ftc.teamcode.Intake;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Util.Normalize;
 
-import java.util.Objects;
-
-public class    Intake {
-	private final CRServo  s_intake ;
+public class Intake {
+    private final CRServo s_intake ;
 
     private final DcMotorEx m_intake, m_outake ;
 
     private ElapsedTime timer= new ElapsedTime();
 
     private Shooter shooter;
-    
+
     private Normalize normalizeFront;
     private Normalize normalizeBack;
 
     public enum States {
         OFF,
         INTAKE,
-		PREP,
+        PREP,
         SHOOT,
     }
 
@@ -49,48 +42,48 @@ public class    Intake {
         m_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         m_outake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        state= States.OFF;
+        state = States.OFF;
     }
 
     public void enable()
+    {
         s_intake.setPower( 1) ;
         m_intake.setPower( 1) ;
-		m_outake.setPower( 0) ;
-		state= INTAKE ;
+        m_outake.setPower( 0) ;
+        state = States.INTAKE ;
     }
 
-	public void shoot( )
-	{
-		if ( INTAKE == state ) {
-			shooter.target() ;
-			state= PREP ;
-		}
+    public void shoot( )
+    {
+        if ( States.INTAKE == state ) {
+            shooter.target() ;
+            state = States.PREP ;
+        }
 
-		if ( SHOOT == state ) {
-			enable() ;
-		}
-	}
+        if ( States.SHOOT == state ) {
+            enable() ;
+        }
+    }
 
-	public void	off()
-	{
+    public void    off()
+    {
         s_intake.setPower( 0) ;
         m_intake.setPower( 0) ;
-		m_outake.setPower( 0) ;
-		state= OFF ;
-	}
-
-    public void update() {
-		if ( PREP ) {
-			if ( ! shooter.atTarget() ) { return ; }
-
-			m_outake.setPower( 1) ;
-			state= SHOOT ;
-		}
+        m_outake.setPower( 0) ;
+        state = States.OFF ;
     }
 
-	public boolean stable()
-	{
-		return SHOOT == state ;
-	}
-}
+    public void update() {
+        if ( States.PREP == state ) {
+            if ( ! shooter.atTarget() ) { return ; }
 
+            m_outake.setPower( 1) ;
+            state = States.SHOOT ;
+        }
+    }
+
+    public boolean stable()
+    {
+        return States.SHOOT == state ;
+    }
+}
