@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 
@@ -23,6 +24,16 @@ public class TestOp extends LinearOpMode {
     private Shooter shooter;
 
     public volatile double yaw;
+    private double currSpeed = 0;
+
+    public enum States {
+        OFF,
+        INTAKE,
+        PREP,
+        SHOOT,
+    }
+
+    States states = States.OFF;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -34,7 +45,11 @@ public class TestOp extends LinearOpMode {
         fl.setDirection(DcMotorSimple.Direction.REVERSE);
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        gyro = hardwareMap.get(GoBildaPinpointDriver.class, "gyro");
+        gyro = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+
+        gyro.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        gyro.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        gyro.setOffsets(-1, 6.6, DistanceUnit.INCH);
 
         List<DcMotorEx> allMotors = Arrays.asList(
                 fl, fr, bl, br
@@ -63,29 +78,60 @@ public class TestOp extends LinearOpMode {
                 gyro.resetPosAndIMU();
             }
 
-            if (gamepad1.a) {
-                intake.enable();
+            if (gamepad1.back) {
+                currSpeed = 0;
+            }
+            if (gamepad1.left_bumper) {
+                currSpeed = .1;
             }
 
-            if (gamepad1.b) {
+            if (gamepad1.left_stick_button) {
+                currSpeed = .13;
+            }
+
+            if (gamepad1.right_stick_button) {
+                currSpeed = .16;
+            }
+
+            if (gamepad1.right_bumper) {
+                currSpeed = .2;
+            }
+
+            shooter.setSpeed(currSpeed);
+
+            if (gamepad1.dpad_down) {
+                intake.feed();
+            }
+
+            if (gamepad1.dpad_up) {
                 intake.off();
             }
 
-			telemetry.addData("shooterPct", shooter.targetProgress());
-            telemetry.addData("hootPct", shooter.hood.progress());
+            if (gamepad1.x) {
+                states = States.OFF;
+            }
+
+            stateHandler();
+
+			//telemetry.addData("shooterPct", shooter.targetProgress());
+            //telemetry.addData("hootPct", shooter.hood.progress());
             telemetry.addData("distance", shooter.lime.getDistance());
-            telemetry.addData("mode", intake.state);
-            telemetry.addData("pinpoint", gyro.getHeading(AngleUnit.RADIANS));
+            telemetry.addData("mode", states.name());
+            telemetry.addData("raw vel", shooter.getRawSpeed());
+            telemetry.addData("pinpoint", gyro.getPosition().getHeading(AngleUnit.DEGREES));
             telemetry.update();
 
         }
     }
 
     public void drive(double y, double x, double rx) {
-        double botHeading = yaw;
+        double botHeading = gyro.getHeading(AngleUnit.RADIANS);
 
+        // Rotate the movement direction counter to the bot's rotation
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
@@ -97,5 +143,34 @@ public class TestOp extends LinearOpMode {
         bl.setPower(backLeftPower);
         fr.setPower(frontRightPower);
         br.setPower(backRightPower);
+    }
+
+    public void stateHandler() {
+        switch (states) {
+            case OFF:
+                intake.off();
+
+                if (gamepad1.a) { states = States.INTAKE; }
+                break;
+
+            case INTAKE:
+                intake.enable();
+
+                if (gamepad1.b) { states = States.PREP; }
+                break;
+
+            case PREP:
+                //intake.shoot(shooter.lime.getDistance());
+                shooter.setSpeed(.25);
+
+                if (gamepad1.y) { states = States.SHOOT; }
+                break;
+
+            case SHOOT:
+                intake.feed();
+
+                if (gamepad1.a) { states = States.INTAKE; }
+                break;
+        }
     }
 }

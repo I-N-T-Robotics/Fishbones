@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
@@ -9,6 +12,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
+import org.firstinspires.ftc.teamcode.Util.actions.ActionOpMode;
+import org.firstinspires.ftc.teamcode.Util.actions.IntakeActions;
+import org.firstinspires.ftc.teamcode.Util.actions.ShooterActions;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -18,73 +25,38 @@ import java.util.List;
 @Autonomous(name = "finalBlueAuto", group = "Autos")
 public class finalBlueAuto extends ActionOpMode {
 
-	private static class	MoveTask {
-		private PathChain 	_path ;
-		private double 		_wait ;
-		private int			_state ;
+    private static class WaitAction {
+        double triggerTime;
+        Action action;
+        boolean triggered = false;
 
-		public boolean		done ;
+        WaitAction(double triggerTime, Action action) {
+            this.triggerTime = triggerTime;
+            this.action = action;
+        }
+    }
 
-		MoveTask( PathChain path, double wait )
-		{
-			_path = path ;
-			_wait = wait ;
-			_state = 0 ;
-			done = false ;
-		}
+    private static class PathChainTask {
+        PathChain path;
+        double waitTime;
+        List<WaitAction> waitActions = new ArrayList<>();
 
-		public void	update()
-		{
-			switch ( _state )
-			{
-				case 0:
-					follower.followPath( _path, true ) ;
-					_state= 1 ;
-					break ;
-				case 1:
-					if ( ! ! ! follower.isBusy() ) {
-						pathtimer.resetTimer() ;
-						_state = 2 ;
-					}
-					break ;	
-				case 2:
-					if ( pathTimer.getElapsedTimeSeconds() > _wait ) {
-						_wait= 0. ;
-						_state= 3 ;
-					}
-					break ;
-				case 3:
-					act() ;
-					_state = 4 ;
-					break ;
-				case 4:
-					if ( done() ) {
-						_state = 5 ;
-					}
-				case 5:
-					if ( _wait > 0. ) {
-						pathtimer.resetTimer() ;
-						_state = 6 ;
-					}
-					else {
-						_state = 7 ;
-					}
-					break ;
-				case 6:
-					if ( pathTimer.getElapsedTimeSeconds() > _wait ) {
-                        _wait= 0. ;
-                        _state= 7 ;
-                    }
-					break ;
-				case 7:
-					done = true ;
-					break ;
-			}
-		}
+        PathChainTask(PathChain path, double waitTime) {
+            this.path = path;
+            this.waitTime = waitTime;
+        }
 
-		public void	act() { }
-		public bool done() { return true ; }
-	}
+        PathChainTask addWaitAction(double triggerTime, Action action) {
+            waitActions.add(new WaitAction(triggerTime, action));
+            return this;
+        }
+
+        void reset() {
+            for (WaitAction wa : waitActions) {
+                wa.triggered = false;
+            }
+        }
+    }
 
     private static final double PATH_COMPLETION_T = 0.985;
 
@@ -93,132 +65,142 @@ public class finalBlueAuto extends ActionOpMode {
 
     private Intake intake;
     private Shooter shooter;
+    private IntakeActions intakeActions;
+    private ShooterActions shooterActions;
 
+    private final List<PathChainTask> tasks = new ArrayList<>();
     private int currentTaskIndex = 0;
     private int taskPhase = 0; // 0 = DRIVE, 1 = WAIT
 
-	public final double	 shoot112 = Math.toRadians( 112) ;
-	public final double	 shoot128 = Math.toRadians( 128) ;
-	public final double	 shoot143 = Math.toRadians( 143) ;
-	public final double  dir180 = Math.toRadians( 180) ;
-	public final double  dir270 = Math.toRadians( 270) ;
+    private final Pose startPose = new Pose(25.337, 129.642, Math.toRadians(144));
 
-    private final Pose start = new Pose(20.903225806451616, 98.9032258064516, Math.toRadians(-36));
+    private Paths paths;
 
-    private final Pose shootPreload = new Pose(44.12903225806452, 98.9032258064516, shoot143 );
-    private final Pose shootPreloadCtl = new Pose(76.64516129032258, 89.2258064516129);
+    public class Paths {
 
-    private final Pose intake1 = new Pose(14.70967741935484, 87.09677419354838, dir180 );
-    private final Pose intake1Ctl = new Pose(49.5483870967742, 72.19354838709677);
+        public PathChain preload;
+        public PathChain intake1P, intake12P, shoot1P;
+        public PathChain intake2P, shoot2P;
+        public PathChain intake3P, shoot3P;
+        public PathChain intake4P, shoot4P;
 
-    private final Pose shoot1Pose = new Pose(51.67741935483871, 82.06451612903226, shoot128 );
+        Paths(Follower follower) {
 
-    private final Pose intake2 = new Pose(14.516129032258064, 67.74193548387098, dir180 );
-    private final Pose intake2Ctl1 = new Pose(63.096774193548384, 64.45161290322581);
-    private final Pose intake2Ctl2 = new Pose(26.516129032258064, 44.32258064516128);
+            preload = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(25.337, 129.642), new Pose(60.246, 83.472))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(132))
+                    .build();
 
-    private final Pose shoot2Pose = new Pose(56.516129032258064, 16.645161290322584, shoot112 );
-    private final Pose shoot2Ctl = new Pose(38.32258064516129, 52.25806451612903);
+            intake1P = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(60.246, 83.472), new Pose(53.208, 83.331))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(0))
+                    .addTemporalCallback(0, () -> intakeActions.intakeA.forwardIntake())
+                    .build();
 
-    private final Pose intake3 = new Pose(7.935483870967742, 34.645161290322584, dir180 );
-    private final Pose intake3Ctl = new Pose(45.29032258064516, 36.38709677419355);
+            intake12P = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(53.208, 83.331), new Pose(16.751, 83.472))
+                    )
+                    .setConstantHeadingInterpolation(Math.toRadians(0))
+                    .build();
 
-    private final Pose shoot3Pose = new Pose(56.516129032258064, 16.645161290322584, shoot112 );
-    private final Pose shoot3Ctl = new Pose(45.29032258064516, 36.38709677419355);
+            shoot1P = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(16.751, 83.472), new Pose(60.246, 83.754))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(132))
+                    .build();
 
-    private final Pose intake4 = new Pose(8.70967741935484, 7.935483870967735, dir270 );
-    private final Pose intake4Ctl = new Pose(7.548387096774194, 33.09677419354839);
 
-    private final Pose shoot4Pose = new Pose(56.70967741935483, 16.451612903225808, shoot112 );
-    private final Pose shoot4Ctl = new Pose(27.677419354838708, 26.903225806451605);
+            intake2P = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(60.246, 83.754),
+                                    new Pose(83.894, 53.490),
+                                    new Pose(13.232, 62.639)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(132), Math.toRadians(-10))
+                    .addTemporalCallback(0, () -> intakeActions.intakeA.forwardIntake())
+                    .build();
 
-	private static class	ShootTask extends MoveTask
-	{
-		ShootTask( PathChain path ) { super( path, 3. ) ; }
-		public void	act() { intake.shoot() ;  _wait= 3. ; }
-		public boolean done() {  return intake.enable() ; }
-	}
-
-	private static class	IntakeTask extends MoveTask
-	{
-		IntakeTask( PathChain path ) { super( path, 1.5 ) ; }
-		public void act() { intake.enable() ;  _wait= 1. ; }
-		public boolean done() { return true ; }
-	}
-
-	public class	ChainBuilder
-	{
-		private  Follower   _fol ;
-		private  Pose  _cur ;
-
-		ChainBuilder( Follower fol, Pose pose )
-		{
-			_fol = fol ;
-			_cur = pose ;
-		}
-
-		public PathChain	step( Pose ctl, Pose end )
-		{
-			Pose old = _cur ;
-			_cur = end ;
-
-			return follower.pathBuilder()
-					.addPath( new BezierCurve( old, ctl, _cur ))
-					.setLinearHeadingInterpolation( old.getHeading(), _cur.getHeading())
-					.build() ;
-		}
-		public PathChain	step( Pose ctl1, Post ctl2, Pose end )
-		{
-			Pose old = _cur ;
-			_cur = end ;
-
-			return follower.pathBuilder()
-					.addPath( new BezierCurve( old, ctl1, ctl2, _cur ))
-					.setLinearHeadingInterpolation( old.getHeading(), _cur.getHeading())
-					.build() ;
-		}
-	}
-
-    public class Steps {
-
-		public	ChainBuilder	build ;
-		public  int				step ;
-
-		public void		shoot( PathChain path ) { tasks.add( new ShootTask( path ) ; }
-		public void		intake( PathChain path ) { tasks.add( new IntakeTask( path ) ; }
-
-        Steps(Follower follower) {
-
-			build = new ChainBuilder( foll, start ) ;
-			step = 0 ;
-
-			shoot( 	build.step( shootPreloadCtl, shootPreload )) ;
-			intake( build.step( intake1Ctl, intake1 )) ;
-			shoot( 	build.step( intake1Ctl, shoot1Pose )) ;
-			intake( build.step( intake2Ctl1, intake2Ctl2, intake2 )) ;
-            shoot( 	build.step( shoot2Ctl, shoot2Pose)) ;
-            intake( build.step( intake3Ctl, intake3)) ;
-            shoot( 	build.step( shoot3Ctl, shoot3Pose)) ;
-            intake( build.step( intake4Ctl, intake4 )) ;
-            shoot( 	build.step( shoot4Ctl, shoot4Pose )) ;
+            shoot2P = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(13.232, 62.639), new Pose(59.824, 83.894))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(-10), Math.toRadians(132))
+                    .build();
         }
-
-		private final List<MoveTask>	tasks ;
-
-		public MoveTask		update()
-		{
-			if ( step > tasks.size() ) {
-				return ;
-			}
-
-			MoveTask task = tasks.get( step ) ;
-
-			task.update() ;
-			if ( task.done ) { step += 1 ; }
-		}
     }
 
-	public Steps steps ;
+    private void buildTaskList() {
+        tasks.clear();
+
+        tasks.add(new PathChainTask(paths.preload, 3.0)
+                .addWaitAction(0.5, intakeActions.intakeA.feed()));
+
+        tasks.add(new PathChainTask(paths.intake1P, 0.4)
+                .addWaitAction(0.0, intakeActions.intakeA.stop()));
+
+        tasks.add(new PathChainTask(paths.intake12P, 0));
+
+        tasks.add(new PathChainTask(paths.shoot1P, 3.0)
+                .addWaitAction(0, intakeActions.intakeA.feed()));
+
+//        tasks.add(new PathChainTask(paths.intake2P, 1)
+//                .addWaitAction(0.0, intakeActions.intakeA.stop()));
+//
+//        tasks.add(new PathChainTask(paths.shoot2P, 3.5)
+//                .addWaitAction(0, intakeActions.intakeA.feed()));
+    }
+
+    private void runTasks() {
+        if (currentTaskIndex >= tasks.size()) return;
+
+        PathChainTask task = tasks.get(currentTaskIndex);
+
+        switch (taskPhase) {
+
+            case 0: // DRIVE
+                if (!follower.isBusy()) {
+                    follower.followPath(task.path, true);
+                    pathTimer.resetTimer();
+                    task.reset();
+                }
+
+                if (follower.getCurrentTValue() >= PATH_COMPLETION_T) {
+                    pathTimer.resetTimer();
+                    taskPhase = 1;
+                }
+                break;
+
+            case 1: // WAIT
+                double t = pathTimer.getElapsedTimeSeconds();
+
+                for (WaitAction wa : task.waitActions) {
+                    if (!wa.triggered && t >= wa.triggerTime) {
+                        run(wa.action);
+                        wa.triggered = true;
+                    }
+                }
+
+                if (t >= task.waitTime) {
+                    currentTaskIndex++;
+                    taskPhase = 0;
+                }
+                break;
+        }
+    }
 
     @Override
     public void init() {
@@ -226,17 +208,22 @@ public class finalBlueAuto extends ActionOpMode {
         pathTimer = new Timer();
 
         shooter = new Shooter(hardwareMap);
-        intake = new Intake(hardwareMap, shooter ) ;
+        intake = new Intake(hardwareMap, shooter);
+
+        shooterActions = new ShooterActions(shooter, new Limelight(hardwareMap), new ShooterHood(hardwareMap));
+        intakeActions = new IntakeActions(intake);
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(start);
+        follower.setStartingPose(startPose);
+
 
         paths = new Paths(follower);
-        steps = new Steps( follower ) ;
+        buildTaskList();
     }
 
     @Override
     public void start() {
+        shooterActions.shooterA.shoot();
         currentTaskIndex = 0;
         taskPhase = 0;
         pathTimer.resetTimer();
@@ -246,6 +233,6 @@ public class finalBlueAuto extends ActionOpMode {
     public void loop() {
         super.loop();
         follower.update();
-        steps.update() ;
+        runTasks();
     }
 }
