@@ -17,12 +17,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(11.79)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.15, 0, 0.013, 0))
-            .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.001, 0.6,0.007));
+            .forwardZeroPowerAcceleration(-27.55)
+            .lateralZeroPowerAcceleration(-67.37)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0.04))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.15, 0, 0.03, 0.03))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001,0.6, 0.01))
+            .useSecondaryDrivePIDF(true)
+            .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.000005, 0.6, 0.01))
+            .centripetalScaling(0.005);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(.7)
+            .maxPower(1)
+            .xVelocity(76.43)
+            .yVelocity(59.16)
             .rightFrontMotorName("fr")
             .rightRearMotorName("br")
             .leftRearMotorName("bl")
@@ -41,13 +48,13 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1.5, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1.15, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
+                .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
-                .pinpointLocalizer(localizerConstants)
                 .build();
     }
 }
