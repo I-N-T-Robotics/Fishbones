@@ -62,7 +62,7 @@ public class TestOp extends LinearOpMode {
         });
 
         shooter = new Shooter(hardwareMap);
-        intake = new Intake(hardwareMap, shooter );
+        intake = new Intake(hardwareMap);
 
         waitForStart();
 
@@ -97,7 +97,7 @@ public class TestOp extends LinearOpMode {
                 currSpeed = .2;
             }
 
-            shooter.setSpeed(currSpeed);
+            shooter.shootPower(currSpeed);
 
             if (gamepad1.dpad_down) {
                 intake.feed();
@@ -161,7 +161,7 @@ public class TestOp extends LinearOpMode {
 
             case PREP:
                 //intake.shoot(shooter.lime.getDistance());
-                shooter.setSpeed(.25);
+                shooter.shootPower(.25);
 
                 if (gamepad1.y) { states = States.SHOOT; }
                 break;
