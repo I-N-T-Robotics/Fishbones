@@ -11,15 +11,9 @@ import org.firstinspires.ftc.teamcode.Util.Normalize;
 
 public class Intake {
     private final CRServo s_intake ;
-
     private final DcMotorEx m_intake, m_outake ;
 
-    private ElapsedTime timer= new ElapsedTime();
-
-    private Shooter shooter;
-
-    public Intake(HardwareMap hardwareMap, Shooter shooter ) {
-        this.shooter= shooter;
+    public Intake(HardwareMap hardwareMap) {
 
         s_intake= hardwareMap.get(CRServo.class, "sin");
 
@@ -36,15 +30,10 @@ public class Intake {
     {
         s_intake.setPower( 1) ;
         m_intake.setPower( 1) ;
-        m_outake.setPower( -.1) ;
+        m_outake.setPower( -0.1) ;
     }
 
-    public void shoot(double distance )
-    {
-            shooter.setRate(shooter.getShooterRPM(distance)); ;
-        }
-
-    public void    off()
+    public void  off()
     {
         s_intake.setPower( 0) ;
         m_intake.setPower( 0) ;
@@ -52,9 +41,13 @@ public class Intake {
     }
 
     public void feed() {
-        m_outake.setPower(1);
+        m_outake.setPower(1)  ;
         s_intake.setPower( 1) ;
         m_intake.setPower( 1) ;
+    }
+
+    public void stopFeed() {
+        m_outake.setPower(-0.1);
     }
 
 }
