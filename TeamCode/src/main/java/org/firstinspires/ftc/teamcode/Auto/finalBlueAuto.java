@@ -208,7 +208,7 @@ public class finalBlueAuto extends ActionOpMode {
         pathTimer = new Timer();
 
         shooter = new Shooter(hardwareMap);
-        intake = new Intake(hardwareMap, shooter);
+        intake = new Intake(hardwareMap);
 
         shooterActions = new ShooterActions(shooter, new Limelight(hardwareMap), new ShooterHood(hardwareMap));
         intakeActions = new IntakeActions(intake);
