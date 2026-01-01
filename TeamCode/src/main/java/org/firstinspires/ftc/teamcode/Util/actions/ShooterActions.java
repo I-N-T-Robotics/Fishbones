@@ -23,7 +23,7 @@ public class ShooterActions {
     public class ShooterA {
         public Action setShooterSpeed() {
             return t -> {
-                shooter.setSpeed(.25);
+                shooter.shootPower(0.25);
                 return false;
             };
         }
