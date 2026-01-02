@@ -3,10 +3,7 @@ package org.firstinspires.ftc.teamcode.Shooter;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Constants.Settings;
 import org.firstinspires.ftc.teamcode.Util.LinearInterpolator;
-
-import edu.wpi.first.math.geometry.Translation2d;
 
 public class ShooterHood {
 
@@ -20,7 +17,7 @@ public class ShooterHood {
     public ShooterHood(HardwareMap hardwareMap) {
         hood = hardwareMap.get(Servo.class, "hood");
 
-		HOOD_INTERPOLATOR = new LinearInterpolator(hoodData);
+        HOOD_INTERPOLATOR = new LinearInterpolator(hoodData);
     }
 
 	public	void	targetDistance( double distance )

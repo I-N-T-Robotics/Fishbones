@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 
-import edu.wpi.first.math.geometry.Translation2d;
-
 import org.firstinspires.ftc.teamcode.Util.LinearInterpolator;
 import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
