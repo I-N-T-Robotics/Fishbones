@@ -1,5 +1,13 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,12 +18,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TestOp", group = "teleOp")
 public class TestOp extends LinearOpMode {
+
+    private Follower follower;
+    public static Pose startPose;
+    private boolean automatedDrive;
+    private Supplier<PathChain> pathChain;
+    private TelemetryManager telemetryM;
 
     private DcMotorEx fl, fr, bl, br;
 
@@ -37,6 +53,17 @@ public class TestOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // Follower init stuff
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startPose == null ? new Pose() : startPose);
+        follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        pathChain = () -> follower.pathBuilder()
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(58, 85))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(135), 0.8)) //TODO: tune t
+                .build();
+
         fl = hardwareMap.get(DcMotorEx.class, "fl");
         fr = hardwareMap.get(DcMotorEx.class, "fr");
         bl = hardwareMap.get(DcMotorEx.class, "bl");
@@ -78,24 +105,6 @@ public class TestOp extends LinearOpMode {
                 gyro.resetPosAndIMU();
             }
 
-            if (gamepad1.back) {
-                currSpeed = 0;
-            }
-            if (gamepad1.left_bumper) {
-                currSpeed = .1;
-            }
-
-            if (gamepad1.left_stick_button) {
-                currSpeed = .13;
-            }
-
-            if (gamepad1.right_stick_button) {
-                currSpeed = .16;
-            }
-
-            if (gamepad1.right_bumper) {
-                currSpeed = .2;
-            }
 
             shooter.shootPower(currSpeed);
 

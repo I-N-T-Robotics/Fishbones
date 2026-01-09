@@ -101,6 +101,7 @@ public class BlueAutoNotThatDeep extends OpMode {
                 break;
             case 1: // Score preload then go to start intake 1
                 shootThenFollowPath(2.5, scoreToIntake1Start, 0.85, 2);
+
                 break;
             case 2: // Hold at the end of intake path for 1 second and then go to score
                 waitThenFollowPath(1, intake1EndToScore, 3);
