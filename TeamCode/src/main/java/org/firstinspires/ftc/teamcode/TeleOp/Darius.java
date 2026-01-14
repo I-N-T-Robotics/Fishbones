@@ -62,7 +62,7 @@ public class Darius extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         pathChain = () -> follower.pathBuilder()
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(60.25, 84))))
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(5, 84))))
                 .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(135), 0.8)) //TODO: tune t
                 .build();
 
@@ -99,6 +99,7 @@ public class Darius extends OpMode {
     @Override
     public void start() {
         follower.startTeleopDrive();
+
     }
 
     @Override
@@ -125,6 +126,8 @@ public class Darius extends OpMode {
             automatedDrive = false;
         }
 
+
+
         stateHandler();
 
         if (gamepad1.x) {
@@ -134,6 +137,11 @@ public class Darius extends OpMode {
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
+        telemetryM.debug("TagDetected", shooter.getId());
+        telemetryM.debug("Serveo pos",shooter.getHoodPos());
+        telemetryM.debug("dist",shooter.dist());
+
+        shooter.lime.update();
 
     }
 
@@ -141,8 +149,8 @@ public class Darius extends OpMode {
         switch (states) {
             case OFF:
                 intake.off();
-                shooter.shootPower(0);
-
+                shooter.shootPower(.1);
+                shooter.setHood(.15);
                 if (gamepad1.b) { states = States.INTAKE; }
                 break;
 
@@ -156,8 +164,8 @@ public class Darius extends OpMode {
                 break;
 
             case PREP:
-                shooter.shootPower(.25);
-
+                //shooter.shootPower(.25);
+                shooter.target();
                 if (gamepad1.y && timer.getElapsedTimeSeconds() > 0.5) { states = States.SHOOT; }
                 break;
 

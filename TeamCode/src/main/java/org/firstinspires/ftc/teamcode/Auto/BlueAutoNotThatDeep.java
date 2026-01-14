@@ -7,6 +7,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
@@ -38,6 +39,8 @@ public class BlueAutoNotThatDeep extends OpMode {
 
     private Intake m_intake;
     private Shooter m_shooter;
+    //Set to max hoodLevel
+    private double hoodLevel = .9;
 
     public void buildPaths() {
         // Intake enable and shooter rev is done using temporal callbacks

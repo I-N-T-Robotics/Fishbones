@@ -14,7 +14,7 @@ public class Shooter {
 
     private DcMotorEx shooterRight, shooterLeft;
 
-    private double[][] speedData = {{.2, 50}, {.4, 80}};
+    private double[][] speedData = {{.2, 35}, {.4, 65}};
     private LinearInterpolator SPEED_INTERPOLATOR;
 
     private double ticksPerRev;
@@ -72,6 +72,22 @@ public class Shooter {
         targetDistance( dist ) ;
         hood.targetDistance( dist ) ;
     }
+
+    public void setHood(double angle){
+        hood.setHood(angle);
+    }
+
+    public double dist(){
+        return lime.getLastDist();
+    }
+
+    public  int getId(){
+        return lime.getTagID();
+    }
+    public double getHoodPos(){
+        return hood.getHoodPos();
+    }
+
 
     public void targetDistance( double distance ) {
         double rate = getShooterRPM ( distance ) * TICK_RATIO / 60.;
