@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
+import static org.firstinspires.ftc.teamcode.TeleOp.RedTeleOp.autoEndPose;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
@@ -24,37 +25,39 @@ public class RedAutoNotThatDeep extends OpMode {
     private final Pose start = new Pose(25.35, 129.65, Math.toRadians(144)).mirror(); // Start pose of our robot
     private final Pose score = new Pose(60.25, 84, Math.toRadians(135)).mirror(); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle
 
-    private final Pose intake1End = new Pose(17, 83, Math.toRadians(0)).mirror(); // Highest (First Set) of Artifacts from the Spike Mark
-    private final Pose intake1Start = new Pose(50, 83, Math.toRadians(0)).mirror();
+    private final Pose intake1End = new Pose(25, 83, Math.toRadians(0)).mirror(); // Highest (First Set) of Artifacts from the Spike Mark
+    private final Pose intake1Start = new Pose(45, 83, Math.toRadians(0)).mirror();
 
-    private final Pose intake2End = new Pose(17, 59, Math.toRadians(0)).mirror(); // Middle (Second Set) of Artifacts from the Spike Mark
-    private final Pose intake2Start = new Pose(50, 59, Math.toRadians(0)).mirror();
+    private final Pose intake2End = new Pose(20, 60, Math.toRadians(0)).mirror(); // Middle (Second Set) of Artifacts from the Spike Mark
+    private final Pose intake2Start = new Pose(45, 60, Math.toRadians(0)).mirror();
 
-    private final Pose intake3End = new Pose(17, 35, Math.toRadians(0)).mirror(); // Lowest (Third Set) of Artifacts from the Spike Mark
-    private final Pose intake3Start = new Pose(50, 35, Math.toRadians(0)).mirror();
+    private final Pose intake3End = new Pose(20, 36, Math.toRadians(0)).mirror(); // Lowest (Third Set) of Artifacts from the Spike Mark
+    private final Pose intake3Start = new Pose(45, 36, Math.toRadians(0)).mirror();
 
-    private final Pose park = new Pose(25.5, 72, Math.toRadians(0)).mirror(); // Park in front of gate at end of auto
+    private final Pose park = new Pose(28, 72, Math.toRadians(0)).mirror(); // Park in front of gate at end of auto
 
     private PathChain startToScore, scoreToIntake1Start, intake1EndToScore, scoreToIntake2Start, intake2EndToScore, scoreToIntake3Start, intake3EndToScore, scoreToPark;
 
     private Intake m_intake;
     private Shooter m_shooter;
-    //Set to max hoodLevel
-    private double hoodLevel = .9;
 
     public void buildPaths() {
         // Intake enable and shooter rev is done using temporal callbacks
         startToScore = follower.pathBuilder()
                 .addPath(new BezierLine(start, score))
                 .setLinearHeadingInterpolation(start.getHeading(), score.getHeading(), 0.75)
-                .addTemporalCallback(0, () -> {m_shooter.shootPower(0.25);}) // Enable shooter, remains on for entire auto
+                .addTemporalCallback(0.5, () -> {
+                    m_shooter.shootPower(0.25);
+                }) // Enable shooter, remains on for entire auto
                 .build();
 
         // Intake and score first artifact group
         scoreToIntake1Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake1Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake1Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {m_intake.enable();}) // Enable intake and run motor outake in reverse. Intake stays on
+                .addTemporalCallback(0, () -> {
+                    m_intake.enable();
+                }) // Enable intake and run motor outake in reverse. Intake stays on
                 .addPath(new BezierLine(intake1Start, intake1End))
                 .setConstantHeadingInterpolation(intake1End.getHeading())
                 .build();
@@ -67,7 +70,9 @@ public class RedAutoNotThatDeep extends OpMode {
         scoreToIntake2Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake2Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake2Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {m_intake.enable();})
+                .addTemporalCallback(0, () -> {
+                    m_intake.enable();
+                })
                 .addPath(new BezierLine(intake2Start, intake2End))
                 .setConstantHeadingInterpolation(intake2End.getHeading())
                 .build();
@@ -80,7 +85,9 @@ public class RedAutoNotThatDeep extends OpMode {
         scoreToIntake3Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake3Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake3Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {m_intake.enable();})
+                .addTemporalCallback(0, () -> {
+                    m_intake.enable();
+                })
                 .addPath(new BezierLine(intake3Start, intake3End))
                 .setConstantHeadingInterpolation(intake3End.getHeading())
                 .build();
@@ -104,22 +111,21 @@ public class RedAutoNotThatDeep extends OpMode {
                 break;
             case 1: // Score preload then go to start intake 1
                 shootThenFollowPath(2.5, scoreToIntake1Start, 0.85, 2);
-
                 break;
             case 2: // Hold at the end of intake path for 1 second and then go to score
-                waitThenFollowPath(1, intake1EndToScore, 3);
+                waitThenFollowPath(0.5, intake1EndToScore, 3);
                 break;
             case 3: // Score and then go to intake 2
                 shootThenFollowPath(2.5, scoreToIntake2Start, 0.85, 4);
                 break;
             case 4: // Hold at the end of intake path for 1 second and then go to score
-                waitThenFollowPath(1, intake2EndToScore, 5);
+                waitThenFollowPath(0.5, intake2EndToScore, 5);
                 break;
             case 5: // Score and then go to intake 3
                 shootThenFollowPath(2.5, scoreToIntake3Start, 0.85, 6);
                 break;
             case 6: // Hold at the end of intake path for 1 second and then go to score
-                waitThenFollowPath(1, intake3EndToScore, 7);
+                waitThenFollowPath(0.5, intake3EndToScore, 7);
                 break;
             case 7: // Score and then go park in front of gate
                 shootThenFollowPath(2.5, scoreToPark, 1, -1);
@@ -189,5 +195,10 @@ public class RedAutoNotThatDeep extends OpMode {
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", follower.getPose().getHeading());
         telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        autoEndPose = follower.getPose();
     }
 }
