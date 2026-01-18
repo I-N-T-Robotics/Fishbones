@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Constants.Settings;
 
 import org.firstinspires.ftc.teamcode.Util.LinearInterpolator;
-import org.firstinspires.ftc.teamcode.Vision.Limelight;
 
 public class Shooter {
 
@@ -18,23 +17,16 @@ public class Shooter {
     private LinearInterpolator SPEED_INTERPOLATOR;
 
     private double ticksPerRev;
-
     private double[] settingsDistance;
     private double[] settingsShooterSpeeds;
 
     private double  rightTarget = 0 ;
-
     private static final double IDLE_POWER = 0.1;
     private static final double TICK_RATIO = 537.6 ;
-
-    public ShooterHood hood ;
-    public Limelight lime ;
 
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
-        hood         = new ShooterHood( hardwareMap ) ;
-        lime         = new Limelight( hardwareMap ) ;
 
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -65,30 +57,6 @@ public class Shooter {
         return shooterLeft.getVelocity();
     }
 
-    public void target()
-    {
-        double dist = lime.getLastDist() ;
-
-        targetDistance( dist ) ;
-        hood.targetDistance( dist ) ;
-    }
-
-    public void setHood(double angle){
-        hood.setHood(angle);
-    }
-
-    public double dist(){
-        return lime.getLastDist();
-    }
-
-    public  int getId(){
-        return lime.getTagID();
-    }
-    public double getHoodPos(){
-        return hood.getHoodPos();
-    }
-
-
     public void targetDistance( double distance ) {
         double rate = getShooterRPM ( distance ) * TICK_RATIO / 60.;
         shootVelocity(rate);
@@ -116,9 +84,7 @@ public class Shooter {
         shooterRight.setPower(0);
         shooterLeft.setPower(0);
     }
-    public boolean atTarget() {
-        return hood.atAngle() && shooterRight.getVelocity() >= rightTarget ;
-    }
+
     public double targetProgress() {
         return ( rightTarget > 0. ) ? shooterRight.getVelocity() / rightTarget : 1. ;
     }
