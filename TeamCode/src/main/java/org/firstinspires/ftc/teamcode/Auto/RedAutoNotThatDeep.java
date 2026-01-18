@@ -6,34 +6,34 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue12Ball NotThatDeep", group = "Actual Working Autos")
+@Autonomous(name = "Red12Ball NotThatDeep", group = "Actual Working Autos")
 
-public class BlueAutoNotThatDeep extends OpMode {
+public class RedAutoNotThatDeep extends OpMode {
     private Follower follower;
     private Timer pathTimer, actionTimer;
     private boolean wasActionTimerReset;
     private int pathState;
 
-    private final Pose start = new Pose(25.35, 129.65, Math.toRadians(144)); // Start pose of our robot
-    private final Pose score = new Pose(60.25, 84, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle
+    private final Pose start = new Pose(25.35, 129.65, Math.toRadians(144)).mirror(); // Start pose of our robot
+    private final Pose score = new Pose(60.25, 84, Math.toRadians(135)).mirror(); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle
 
-    private final Pose intake1End = new Pose(17, 83, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark
-    private final Pose intake1Start = intake1End.withX(50);
+    private final Pose intake1End = new Pose(17, 83, Math.toRadians(0)).mirror(); // Highest (First Set) of Artifacts from the Spike Mark
+    private final Pose intake1Start = new Pose(50, 83, Math.toRadians(0)).mirror();
 
-    private final Pose intake2End = new Pose(17, 59, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark
-    private final Pose intake2Start = intake2End.withX(50);
+    private final Pose intake2End = new Pose(17, 59, Math.toRadians(0)).mirror(); // Middle (Second Set) of Artifacts from the Spike Mark
+    private final Pose intake2Start = new Pose(50, 59, Math.toRadians(0)).mirror();
 
-    private final Pose intake3End = new Pose(17, 35, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark
-    private final Pose intake3Start = intake3End.withX(50);
+    private final Pose intake3End = new Pose(17, 35, Math.toRadians(0)).mirror(); // Lowest (Third Set) of Artifacts from the Spike Mark
+    private final Pose intake3Start = new Pose(50, 35, Math.toRadians(0)).mirror();
 
-    private final Pose park = new Pose(25.5, 72, Math.toRadians(0)); // Park in front of gate at end of auto
+    private final Pose park = new Pose(25.5, 72, Math.toRadians(0)).mirror(); // Park in front of gate at end of auto
 
     private PathChain startToScore, scoreToIntake1Start, intake1EndToScore, scoreToIntake2Start, intake2EndToScore, scoreToIntake3Start, intake3EndToScore, scoreToPark;
 
@@ -47,18 +47,14 @@ public class BlueAutoNotThatDeep extends OpMode {
         startToScore = follower.pathBuilder()
                 .addPath(new BezierLine(start, score))
                 .setLinearHeadingInterpolation(start.getHeading(), score.getHeading(), 0.75)
-                .addTemporalCallback(0, () -> {
-                    m_shooter.shootPower(0.25);
-                }) // Enable shooter, remains on for entire auto
+                .addTemporalCallback(0, () -> {m_shooter.shootPower(0.25);}) // Enable shooter, remains on for entire auto
                 .build();
 
         // Intake and score first artifact group
         scoreToIntake1Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake1Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake1Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {
-                    m_intake.enable();
-                }) // Enable intake and run motor outake in reverse. Intake stays on
+                .addTemporalCallback(0, () -> {m_intake.enable();}) // Enable intake and run motor outake in reverse. Intake stays on
                 .addPath(new BezierLine(intake1Start, intake1End))
                 .setConstantHeadingInterpolation(intake1End.getHeading())
                 .build();
@@ -71,9 +67,7 @@ public class BlueAutoNotThatDeep extends OpMode {
         scoreToIntake2Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake2Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake2Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {
-                    m_intake.enable();
-                })
+                .addTemporalCallback(0, () -> {m_intake.enable();})
                 .addPath(new BezierLine(intake2Start, intake2End))
                 .setConstantHeadingInterpolation(intake2End.getHeading())
                 .build();
@@ -86,9 +80,7 @@ public class BlueAutoNotThatDeep extends OpMode {
         scoreToIntake3Start = follower.pathBuilder()
                 .addPath(new BezierLine(score, intake3Start))
                 .setLinearHeadingInterpolation(score.getHeading(), intake3Start.getHeading(), 0.9)
-                .addTemporalCallback(0, () -> {
-                    m_intake.enable();
-                })
+                .addTemporalCallback(0, () -> {m_intake.enable();})
                 .addPath(new BezierLine(intake3Start, intake3End))
                 .setConstantHeadingInterpolation(intake3End.getHeading())
                 .build();
@@ -134,13 +126,10 @@ public class BlueAutoNotThatDeep extends OpMode {
                 break;
         }
     }
+    /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
 
-    /**
-     * These change the states of the paths and actions. It will also reset the timers of the individual switches
-     **/
-
-    public void shootThenFollowPath(double shootTime, PathChain nextPath, double pathMaxPower, int nextPathState) {
-        if (!follower.isBusy()) {
+    public void shootThenFollowPath (double shootTime, PathChain nextPath, double pathMaxPower, int nextPathState) {
+        if(!follower.isBusy()) {
             m_intake.feed();
 
             if (!wasActionTimerReset) {
@@ -155,8 +144,8 @@ public class BlueAutoNotThatDeep extends OpMode {
         }
     }
 
-    public void waitThenFollowPath(double waitTime, PathChain nextPath, int nextPathState) {
-        if (!follower.isBusy()) {
+    public void waitThenFollowPath (double waitTime, PathChain nextPath, int nextPathState) {
+        if(!follower.isBusy()) {
             if (!wasActionTimerReset) {
                 actionTimer.resetTimer();
                 wasActionTimerReset = true;
