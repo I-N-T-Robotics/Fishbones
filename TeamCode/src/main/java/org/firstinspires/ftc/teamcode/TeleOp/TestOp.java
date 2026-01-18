@@ -124,7 +124,6 @@ public class TestOp extends LinearOpMode {
 
 			//telemetry.addData("shooterPct", shooter.targetProgress());
             //telemetry.addData("hootPct", shooter.hood.progress());
-            telemetry.addData("distance", shooter.lime.getDistance());
             telemetry.addData("mode", states.name());
             telemetry.addData("raw vel", shooter.getRawSpeed());
             telemetry.addData("pinpoint", gyro.getPosition().getHeading(AngleUnit.DEGREES));
