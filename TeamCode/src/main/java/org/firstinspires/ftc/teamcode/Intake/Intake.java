@@ -14,9 +14,7 @@ public class Intake {
     private final DcMotorEx m_intake, m_outake ;
 
     public Intake(HardwareMap hardwareMap) {
-
         s_intake= hardwareMap.get(CRServo.class, "sin");
-
         m_intake= hardwareMap.get(DcMotorEx.class, "min");
         m_outake= hardwareMap.get(DcMotorEx.class, "mou");
 
@@ -26,28 +24,25 @@ public class Intake {
 
     }
 
-    public void enable()
-    {
-        s_intake.setPower( 1) ;
-        m_intake.setPower( 1) ;
-        m_outake.setPower( -0.1) ;
+    public void enable() {
+        m_outake.setPower(0.03);
+        s_intake.setPower(1);
+        m_intake.setPower(1);
     }
 
-    public void  off()
-    {
-        s_intake.setPower( 0) ;
-        m_intake.setPower( 0) ;
-        m_outake.setPower( 0) ;
+    public void off() {
+        m_outake.setPower(0);
+        s_intake.setPower(0);
+        m_intake.setPower(0);
     }
 
     public void feed() {
-        m_outake.setPower(1)  ;
-        s_intake.setPower( 1) ;
-        m_intake.setPower( 1) ;
+        m_outake.setPower(1);
+        s_intake.setPower(1);
+        m_intake.setPower(1);
     }
 
     public void stopFeed() {
-        m_outake.setPower(-0.1);
+        m_outake.setPower(-0.05);
     }
-
 }
