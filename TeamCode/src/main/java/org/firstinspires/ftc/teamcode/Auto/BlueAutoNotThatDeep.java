@@ -28,13 +28,13 @@ public class BlueAutoNotThatDeep extends OpMode {
     private final Pose intake1End = new Pose(25, 83, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark
     private final Pose intake1Start = intake1End.withX(45);
 
-    private final Pose intake2End = new Pose(20, 60, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark
+    private final Pose intake2End = new Pose(18, 59, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark
     private final Pose intake2Start = intake2End.withX(45);
 
-    private final Pose intake3End = new Pose(20, 36, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark
+    private final Pose intake3End = new Pose(18, 36, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark
     private final Pose intake3Start = intake3End.withX(45);
 
-    private final Pose park = new Pose(28, 72, Math.toRadians(0)); // Park in front of gate at end of auto
+    private final Pose park = new Pose(30, 72, Math.toRadians(0)); // Park in front of gate at end of auto
 
     private PathChain startToScore, scoreToIntake1Start, intake1EndToScore, scoreToIntake2Start, intake2EndToScore, scoreToIntake3Start, intake3EndToScore, scoreToPark;
 
@@ -47,7 +47,7 @@ public class BlueAutoNotThatDeep extends OpMode {
                 .addPath(new BezierLine(start, score))
                 .setLinearHeadingInterpolation(start.getHeading(), score.getHeading(), 0.75)
                 .addTemporalCallback(0.5, () -> {
-                    m_shooter.shootPower(0.25);
+                    m_shooter.shootPower(0.28);
                 }) // Enable shooter, remains on for entire auto
                 .build();
 
@@ -132,7 +132,6 @@ public class BlueAutoNotThatDeep extends OpMode {
                 break;
         }
     }
-
     /**
      * These change the states of the paths and actions. It will also reset the timers of the individual switches
      **/

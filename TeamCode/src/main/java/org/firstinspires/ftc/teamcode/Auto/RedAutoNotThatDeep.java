@@ -28,13 +28,13 @@ public class RedAutoNotThatDeep extends OpMode {
     private final Pose intake1End = new Pose(25, 83, Math.toRadians(0)).mirror(); // Highest (First Set) of Artifacts from the Spike Mark
     private final Pose intake1Start = new Pose(45, 83, Math.toRadians(0)).mirror();
 
-    private final Pose intake2End = new Pose(20, 60, Math.toRadians(0)).mirror(); // Middle (Second Set) of Artifacts from the Spike Mark
-    private final Pose intake2Start = new Pose(45, 60, Math.toRadians(0)).mirror();
+    private final Pose intake2End = new Pose(18, 59, Math.toRadians(0)).mirror(); // Middle (Second Set) of Artifacts from the Spike Mark
+    private final Pose intake2Start = new Pose(45, 59, Math.toRadians(0)).mirror();
 
-    private final Pose intake3End = new Pose(20, 36, Math.toRadians(0)).mirror(); // Lowest (Third Set) of Artifacts from the Spike Mark
+    private final Pose intake3End = new Pose(18, 36, Math.toRadians(0)).mirror(); // Lowest (Third Set) of Artifacts from the Spike Mark
     private final Pose intake3Start = new Pose(45, 36, Math.toRadians(0)).mirror();
 
-    private final Pose park = new Pose(28, 72, Math.toRadians(0)).mirror(); // Park in front of gate at end of auto
+    private final Pose park = new Pose(30, 72, Math.toRadians(0)).mirror(); // Park in front of gate at end of auto
 
     private PathChain startToScore, scoreToIntake1Start, intake1EndToScore, scoreToIntake2Start, intake2EndToScore, scoreToIntake3Start, intake3EndToScore, scoreToPark;
 
@@ -47,7 +47,7 @@ public class RedAutoNotThatDeep extends OpMode {
                 .addPath(new BezierLine(start, score))
                 .setLinearHeadingInterpolation(start.getHeading(), score.getHeading(), 0.75)
                 .addTemporalCallback(0.5, () -> {
-                    m_shooter.shootPower(0.25);
+                    m_shooter.shootPower(0.28);
                 }) // Enable shooter, remains on for entire auto
                 .build();
 
@@ -132,10 +132,12 @@ public class RedAutoNotThatDeep extends OpMode {
                 break;
         }
     }
-    /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
+    /**
+     * These change the states of the paths and actions. It will also reset the timers of the individual switches
+     **/
 
-    public void shootThenFollowPath (double shootTime, PathChain nextPath, double pathMaxPower, int nextPathState) {
-        if(!follower.isBusy()) {
+    public void shootThenFollowPath(double shootTime, PathChain nextPath, double pathMaxPower, int nextPathState) {
+        if (!follower.isBusy()) {
             m_intake.feed();
 
             if (!wasActionTimerReset) {
@@ -150,8 +152,8 @@ public class RedAutoNotThatDeep extends OpMode {
         }
     }
 
-    public void waitThenFollowPath (double waitTime, PathChain nextPath, int nextPathState) {
-        if(!follower.isBusy()) {
+    public void waitThenFollowPath(double waitTime, PathChain nextPath, int nextPathState) {
+        if (!follower.isBusy()) {
             if (!wasActionTimerReset) {
                 actionTimer.resetTimer();
                 wasActionTimerReset = true;
