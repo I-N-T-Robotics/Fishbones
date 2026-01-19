@@ -142,7 +142,7 @@ public class RedTeleOp extends OpMode {
                 break;
 
             case PREP:
-                shooter.shootPower(0.25);
+                shooter.shootPower(0.3);
                 if (gamepad1.y && timer.getElapsedTimeSeconds() > 0.5) {
                     states = States.SHOOT;
                 }
