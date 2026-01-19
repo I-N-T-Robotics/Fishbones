@@ -99,7 +99,8 @@ public class BlueTeleOp extends OpMode {
                 -gamepad1.left_stick_y,
                 -gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
-                false
+                false,
+                Math.toRadians(180)
             );
         }
 
@@ -142,7 +143,7 @@ public class BlueTeleOp extends OpMode {
                 break;
 
             case PREP:
-                shooter.shootPower(0.25);
+                shooter.shootPower(0.3);
                 if (gamepad1.y && timer.getElapsedTimeSeconds() > 0.5) {
                     states = States.SHOOT;
                 }
