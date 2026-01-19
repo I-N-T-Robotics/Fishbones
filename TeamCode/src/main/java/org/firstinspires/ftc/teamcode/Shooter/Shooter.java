@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Util.LinearInterpolator;
 public class Shooter {
 
     private DcMotorEx shooterRight, shooterLeft;
+    private ShooterHood shooterHood;
 
     private double[][] speedData = {{.2, 35}, {.4, 65}};
     private LinearInterpolator SPEED_INTERPOLATOR;
@@ -27,6 +28,9 @@ public class Shooter {
     public Shooter(HardwareMap hardwareMap) {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
+
+        shooterHood = new ShooterHood(hardwareMap);
+        //shooterHood.setHood(0.9);
 
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
