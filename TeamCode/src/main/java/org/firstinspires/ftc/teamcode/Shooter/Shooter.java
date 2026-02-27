@@ -14,6 +14,7 @@ public class Shooter {
     private DcMotorEx shooterRight, shooterLeft;
     private ShooterHood shooterHood;
 
+    //WHAT is this format???
     private double[][] speedData = {{.2, 35}, {.4, 65}};
     private LinearInterpolator SPEED_INTERPOLATOR;
 
@@ -29,7 +30,8 @@ public class Shooter {
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         shooterLeft  = hardwareMap.get(DcMotorEx.class, "shooterLeft");
 
-        shooterHood = new ShooterHood(hardwareMap);
+        //shooterHood = new ShooterHood(hardwareMap);
+        //shooterHood = new ShooterHood(hardwareMap);
         //shooterHood.setHood(0.9);
 
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
@@ -39,11 +40,15 @@ public class BlueTeleOp extends OpMode {
 
     private Timer timer;
 
+    private Servo hood2;
+
+
     public enum States {
         OFF,
         INTAKE,
-        PREP,
+        PREPFAR,
         SHOOT,
+        PREPCLOSE
     }
 
     States states = States.OFF;
@@ -64,6 +69,10 @@ public class BlueTeleOp extends OpMode {
         fr = hardwareMap.get(DcMotorEx.class, "fr");
         bl = hardwareMap.get(DcMotorEx.class, "bl");
         br = hardwareMap.get(DcMotorEx.class, "br");
+
+        hood2 = hardwareMap.get(Servo.class, "hood2");
+        hood2.setPosition(0.7);
+
 
         fl.setDirection(DcMotorSimple.Direction.REVERSE);
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -136,18 +145,40 @@ public class BlueTeleOp extends OpMode {
             case INTAKE:
                 intake.enable();
 
-                if (gamepad1.y) {
-                    states = States.PREP;
+                if (gamepad1.a) {
+                    states = States.PREPCLOSE;
                     timer.resetTimer();
-                }
+                }if (gamepad1.y) {
+                states = States.PREPFAR;
+                timer.resetTimer();
+            }
                 break;
 
-            case PREP:
-                shooter.shootPower(0.3);
+            case PREPFAR:
+                shooter.shootPower(0.2);
+
+
+                    hood2.setPosition(1);
+
+
+
                 if (gamepad1.y && timer.getElapsedTimeSeconds() > 0.5) {
                     states = States.SHOOT;
                 }
                 break;
+
+            case PREPCLOSE:
+                //this is the power for the shooter that can be changed
+                shooter.shootPower(0.2);
+
+                    hood2.setPosition(0.7);
+
+
+                if (gamepad1.a && timer.getElapsedTimeSeconds() > 0.5) {
+                    states = States.SHOOT;
+                }
+                break;
+
 
             case SHOOT:
                 intake.feed();

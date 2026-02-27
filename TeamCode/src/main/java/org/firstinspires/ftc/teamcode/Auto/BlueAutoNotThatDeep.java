@@ -9,9 +9,11 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Shooter.Shooter;
+import org.firstinspires.ftc.teamcode.Shooter.ShooterHood;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "Blue12Ball NotThatDeep", group = "Actual Working Autos")
@@ -21,6 +23,13 @@ public class BlueAutoNotThatDeep extends OpMode {
     private Timer pathTimer, actionTimer;
     private boolean wasActionTimerReset;
     private int pathState;
+    private Servo hood2;
+    private Servo shooterHood;
+
+
+    public enum States {
+        PREPCLOSE
+    }
 
     private final Pose start = new Pose(25.35, 129.65, Math.toRadians(144)); // Start pose of our robot
     private final Pose score = new Pose(60.25, 84, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle
@@ -40,6 +49,7 @@ public class BlueAutoNotThatDeep extends OpMode {
 
     private Intake m_intake;
     private Shooter m_shooter;
+    private Servo m_shooterhood;
 
     public void buildPaths() {
         // Intake enable and shooter rev is done using temporal callbacks
@@ -47,6 +57,7 @@ public class BlueAutoNotThatDeep extends OpMode {
                 .addPath(new BezierLine(start, score))
                 .setLinearHeadingInterpolation(start.getHeading(), score.getHeading(), 0.75)
                 .addTemporalCallback(0.5, () -> {
+                    shooterHood.setPosition(0.7);
                     m_shooter.shootPower(0.28);
                 }) // Enable shooter, remains on for entire auto
                 .build();
@@ -65,6 +76,7 @@ public class BlueAutoNotThatDeep extends OpMode {
                 .addPath(new BezierLine(intake1End, score))
                 .setLinearHeadingInterpolation(intake1End.getHeading(), score.getHeading(), 0.75)
                 .build();
+
 
         // Intake and score second artifact group
         scoreToIntake2Start = follower.pathBuilder()
@@ -176,6 +188,8 @@ public class BlueAutoNotThatDeep extends OpMode {
     public void init() {
         m_intake = new Intake(hardwareMap);
         m_shooter = new Shooter(hardwareMap);
+        m_shooterhood  = hardwareMap.get(Servo.class, "m_hood2");
+
 
         pathTimer = new Timer();
         actionTimer = new Timer();

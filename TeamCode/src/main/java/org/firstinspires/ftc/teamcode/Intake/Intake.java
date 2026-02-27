@@ -14,7 +14,7 @@ public class Intake {
     private final DcMotorEx m_intake, m_outake ;
 
     public Intake(HardwareMap hardwareMap) {
-        s_intake= hardwareMap.get(CRServo.class, "sin");
+        s_intake= hardwareMap.get(CRServo.class, "index");
         m_intake= hardwareMap.get(DcMotorEx.class, "min");
         m_outake= hardwareMap.get(DcMotorEx.class, "mou");
 

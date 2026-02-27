@@ -7,8 +7,8 @@ import org.firstinspires.ftc.teamcode.Util.LinearInterpolator;
 
 public class ShooterHood {
 
-    private final Servo hood;
-    //Min .15 max 1
+    /*private final Servo hood;
+    Min .15 max 1
     private final double[][] hoodData = {{0.2, 0.2}, {1, .5}};
     private final LinearInterpolator HOOD_INTERPOLATOR;
 
@@ -46,6 +46,6 @@ public class ShooterHood {
 
     public double getHoodPos() {
         return hood.getPosition();
-    }
+    }*/
 }
 
